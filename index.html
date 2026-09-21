@@ -105,6 +105,7 @@ a{color:inherit}
 .kpi{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:16px;position:relative;overflow:hidden;box-shadow:var(--shadow);transition:transform .2s,box-shadow .2s}
 @media (hover:hover){.kpi:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg)}}
 .kpi .lbl{font-size:11.5px;color:var(--ink-faint);text-transform:uppercase;letter-spacing:.07em;font-weight:700;display:flex;align-items:center;gap:6px}
+.kpi .lbl svg{width:14px;height:14px;flex:none}
 .kpi .val{font-family:var(--font-mono);font-size:25px;font-weight:600;margin-top:8px;font-variant-numeric:tabular-nums}
 .kpi .val small{font-size:12px;color:var(--ink-faint);font-family:var(--font-body);font-weight:700}
 .kpi .delta{font-size:11px;margin-top:5px;color:var(--ink-faint)}
@@ -135,6 +136,7 @@ a{color:inherit}
 .icon-btn{width:36px;height:36px;border-radius:10px;border:1px solid var(--line);background:var(--surface);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--ink-dim)}
 .icon-btn:hover{color:var(--ink);border-color:var(--line-strong)}
 .icon-btn svg{width:17px;height:17px}
+.ic-s{width:15px;height:15px;flex:none;display:inline-block;vertical-align:middle}
 .fab{position:fixed;inset-inline-end:22px;bottom:88px;width:56px;height:56px;border-radius:50%;background:var(--accent);color:var(--accent-ink);display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow-lg);border:none;cursor:pointer;z-index:25}
 .fab svg{width:24px;height:24px}
 .fab:active{transform:scale(.92)}
@@ -287,15 +289,21 @@ table.datatable tr:last-child td{border-bottom:none}
 
 /* ===================== CONFIG ===================== */
 var CITIES_SEED = [
-  {id:"riyadh", nameAr:"الرياض", nameEn:"Riyadh"},
-  {id:"jeddah", nameAr:"جدة", nameEn:"Jeddah"},
-  {id:"dammam", nameAr:"الدمام", nameEn:"Dammam"}
+  {id:"riyadh", nameAr:"الرياض", nameEn:"Riyadh"}
 ];
 var BRANCHES_SEED = [
-  {id:"olaya", cityId:"riyadh", nameAr:"فرع العليا", nameEn:"Al Olaya Branch"},
-  {id:"malaz", cityId:"riyadh", nameAr:"فرع الملز", nameEn:"Al Malaz Branch"},
-  {id:"tahlia", cityId:"jeddah", nameAr:"فرع التحلية", nameEn:"Tahlia Branch"},
-  {id:"corniche", cityId:"dammam", nameAr:"فرع الكورنيش", nameEn:"Corniche Branch"}
+  {id:"khurais", cityId:"riyadh", nameAr:"خريص", nameEn:"Khurais", managerName:"Omran", areaManagerName:"Ahmed Adel", collectorName:"Ahmed Hael"},
+  {id:"yarmouk", cityId:"riyadh", nameAr:"اليرموك", nameEn:"Al Yarmouk", managerName:"", areaManagerName:"Ahmed Adel", collectorName:"Ahmed Hael"},
+  {id:"qurtubah", cityId:"riyadh", nameAr:"قرطبة", nameEn:"Qurtubah", managerName:"Abdo", areaManagerName:"Ahmed Adel", collectorName:"Ahmed Hael"},
+  {id:"wins-cafe", cityId:"riyadh", nameAr:"ونس كافيه", nameEn:"WINS Cafe", managerName:"Ahmed Adel", areaManagerName:"Ahmed Adel", collectorName:"Ahmed Hael"},
+  {id:"drive-nadwah", cityId:"riyadh", nameAr:"درايف الندوة", nameEn:"Al Nadwah Drive-Thru", managerName:"Mahmoud Salah", areaManagerName:"Ahmed Adel", collectorName:"Ahmed Hael"},
+  {id:"drive-janadriyah", cityId:"riyadh", nameAr:"درايف الجنادرية", nameEn:"Al Janadriyah Drive-Thru", managerName:"", areaManagerName:"Ahmed Adel", collectorName:"Ahmed Hael"},
+  {id:"drive-marmar", cityId:"riyadh", nameAr:"درايف المرمر", nameEn:"Al Marmar Drive-Thru", managerName:"Amr Beshir", areaManagerName:"Ahmed Adel", collectorName:"Ahmed Hael"},
+  {id:"drive-muheet", cityId:"riyadh", nameAr:"درايف المحيط", nameEn:"Al Muheet Drive-Thru", managerName:"Mohamed Abdelmonem", areaManagerName:"Ahmed Adel", collectorName:"Ahmed Hael"},
+  {id:"drive-maali", cityId:"riyadh", nameAr:"درايف المعالي", nameEn:"Al Maali Drive-Thru", managerName:"Raqeeb", areaManagerName:"Ahmed Adel", collectorName:"Ahmed Hael"},
+  {id:"drive-aziziyah", cityId:"riyadh", nameAr:"درايف العزيزية", nameEn:"Al Aziziyah Drive-Thru", managerName:"Abdullah", areaManagerName:"Mohamed Nasr", collectorName:"Mohamed Nasr"},
+  {id:"hq-office", cityId:"riyadh", nameAr:"مكتب الادارة", nameEn:"Management Office", managerName:"Sobhy", areaManagerName:"Ahmed Adel", collectorName:"Ahmed Hael"},
+  {id:"warehouse", cityId:"riyadh", nameAr:"المخزن الرئيسي", nameEn:"Main Warehouse", managerName:"Hesham", areaManagerName:"Ahmed Adel", collectorName:"Ahmed Hael"}
 ];
 var PAY_TYPES = [
   {id:"pos", ar:"بطاقة (مدى/بنكي)", en:"Card (Mada/Bank)"},
@@ -310,7 +318,7 @@ var EXP_CATS = [
   {id:"staff", ar:"موظفين", en:"Staff"},
   {id:"other", ar:"أخرى", en:"Other"}
 ];
-var ROLES = ["admin","manager","collector","treasury"];
+var ROLES = ["admin","manager","area","collector","treasury"];
 var DEMO_PIN_HASH="03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4"; /* demo seed accounts use PIN 1234 */
 async function hashPin(pin){
   var enc=new TextEncoder().encode(String(pin));
@@ -345,6 +353,7 @@ signIn:{ar:"دخول",en:"Sign In"},
 pinSecurityNote:{ar:"يُشفَّر رقمك السري ولا يُخزَّن كنص صريح",en:"Your PIN is hashed and never stored as plain text"},
 roleAdmin:{ar:"مدير عام",en:"Admin"},
 roleManager:{ar:"مدير فرع",en:"Branch Manager"},
+roleArea:{ar:"مدير منطقة",en:"Area Manager"},
 roleCollector:{ar:"محصّل",en:"Collector"},
 roleTreasury:{ar:"الخزينة",en:"Treasury"},
 notYou:{ar:"تبديل المستخدم",en:"Switch user"},
@@ -417,6 +426,12 @@ branchNameAr:{ar:"اسم الفرع (عربي)",en:"Branch Name (Arabic)"},
 branchNameEn:{ar:"اسم الفرع (إنجليزي)",en:"Branch Name (English)"},
 staffRoster:{ar:"قائمة الموظفين المسجلين",en:"Registered Staff"},
 branchPerf:{ar:"أداء الفروع",en:"Branch Performance"},
+myBranches:{ar:"فروعي",en:"My Branches"},
+areaManagerLbl:{ar:"مدير المنطقة",en:"Area Manager"},
+collectorLbl:{ar:"المحصّل",en:"Collector"},
+managerLbl:{ar:"مدير الفرع",en:"Branch Manager"},
+noAreaBranches:{ar:"لم يتم ربط أي فرع باسمك بعد. تواصل مع الإدارة لربط فروعك.",en:"No branches are linked to your name yet. Ask an admin to assign your branches."},
+optional:{ar:"اختياري",en:"Optional"},
 sales:{ar:"مبيعات",en:"Sales"},
 expenses:{ar:"مصروفات",en:"Expenses"},
 netCash:{ar:"صافي النقد",en:"Net Cash"},
@@ -490,21 +505,22 @@ var Store = (function(){
   function seedLocal(){
     local={cities:{},branches:{},staff:{},sales:{},expenses:{},handovers:{}};
     CITIES_SEED.forEach(function(c){ local.cities[c.id]={nameAr:c.nameAr,nameEn:c.nameEn,order:0}; });
-    BRANCHES_SEED.forEach(function(b,i){ local.branches[b.id]={nameAr:b.nameAr,nameEn:b.nameEn,cityId:b.cityId,active:true,order:i}; });
+    BRANCHES_SEED.forEach(function(b,i){ local.branches[b.id]={nameAr:b.nameAr,nameEn:b.nameEn,cityId:b.cityId,managerName:b.managerName||"",areaManagerName:b.areaManagerName||"",collectorName:b.collectorName||"",active:true,order:i}; });
     var now=Date.now();
     function iso(offsetHrs){ return new Date(now-offsetHrs*3600000).toISOString(); }
-    local.staff['seed-mgr']={name:"سارة القحطاني",role:"manager",branchId:"olaya",pinHash:DEMO_PIN_HASH,createdAt:iso(240)};
-    local.staff['seed-col']={name:"محمد العتيبي",role:"collector",pinHash:DEMO_PIN_HASH,createdAt:iso(240)};
+    local.staff['seed-mgr']={name:"Omran",role:"manager",branchId:"khurais",pinHash:DEMO_PIN_HASH,createdAt:iso(240)};
+    local.staff['seed-area']={name:"Ahmed Adel",role:"area",pinHash:DEMO_PIN_HASH,createdAt:iso(240)};
+    local.staff['seed-col']={name:"Ahmed Hael",role:"collector",pinHash:DEMO_PIN_HASH,createdAt:iso(240)};
     local.staff['seed-trs']={name:"نورة الدوسري",role:"treasury",pinHash:DEMO_PIN_HASH,createdAt:iso(240)};
-    local.sales['s1']={branchId:"olaya",type:"cash",amount:4200,note:"",staffId:"seed-mgr",staffName:"سارة القحطاني",createdAt:iso(5),dateKey:todayKey()};
-    local.sales['s2']={branchId:"olaya",type:"pos",amount:9100,note:"",staffId:"seed-mgr",staffName:"سارة القحطاني",createdAt:iso(4),dateKey:todayKey()};
-    local.sales['s3']={branchId:"olaya",type:"other",amount:1250,note:"STC Pay",staffId:"seed-mgr",staffName:"سارة القحطاني",createdAt:iso(3),dateKey:todayKey()};
-    local.sales['s4']={branchId:"malaz",type:"cash",amount:3100,note:"",staffId:"seed-mgr",staffName:"فهد الحربي",createdAt:iso(6),dateKey:todayKey()};
-    local.expenses['e1']={branchId:"olaya",category:"supplies",amount:350,note:"أكياس ولوازم",staffId:"seed-mgr",staffName:"سارة القحطاني",createdAt:iso(4),dateKey:todayKey()};
-    local.expenses['e2']={branchId:"olaya",category:"transport",amount:120,note:"",staffId:"seed-mgr",staffName:"سارة القحطاني",createdAt:iso(2),dateKey:todayKey()};
-    local.handovers['h1']={branchId:"malaz",declaredAmount:2600,note:"",status:"confirmed",managerId:"seed-mgr2",managerName:"فهد الحربي",createdAt:iso(30),collectorId:"seed-col",collectorName:"محمد العتيبي",collectedAmount:2600,collectedNote:"",collectedAt:iso(26),treasuryId:"seed-trs",treasuryName:"نورة الدوسري",confirmedAmount:2600,confirmedNote:"",confirmedAt:iso(20)};
-    local.handovers['h2']={branchId:"olaya",declaredAmount:1800,note:"",status:"collected",managerId:"seed-mgr",managerName:"سارة القحطاني",createdAt:iso(10),collectorId:"seed-col",collectorName:"محمد العتيبي",collectedAmount:1750,collectedNote:"نقص 50 ريال",collectedAt:iso(7)};
-    local.handovers['h3']={branchId:"tahlia",declaredAmount:3400,note:"يرجى الاستلام قبل الظهر",status:"pending",managerId:"seed-mgr3",managerName:"عبدالله الشهري",createdAt:iso(2)};
+    local.sales['s1']={branchId:"khurais",type:"cash",amount:4200,note:"",staffId:"seed-mgr",staffName:"Omran",createdAt:iso(5),dateKey:todayKey()};
+    local.sales['s2']={branchId:"khurais",type:"pos",amount:9100,note:"",staffId:"seed-mgr",staffName:"Omran",createdAt:iso(4),dateKey:todayKey()};
+    local.sales['s3']={branchId:"khurais",type:"other",amount:1250,note:"STC Pay",staffId:"seed-mgr",staffName:"Omran",createdAt:iso(3),dateKey:todayKey()};
+    local.sales['s4']={branchId:"wins-cafe",type:"cash",amount:3100,note:"",staffId:"seed-mgr2",staffName:"Ahmed Adel",createdAt:iso(6),dateKey:todayKey()};
+    local.expenses['e1']={branchId:"khurais",category:"supplies",amount:350,note:"أكياس ولوازم",staffId:"seed-mgr",staffName:"Omran",createdAt:iso(4),dateKey:todayKey()};
+    local.expenses['e2']={branchId:"khurais",category:"transport",amount:120,note:"",staffId:"seed-mgr",staffName:"Omran",createdAt:iso(2),dateKey:todayKey()};
+    local.handovers['h1']={branchId:"wins-cafe",declaredAmount:2600,note:"",status:"confirmed",managerId:"seed-mgr2",managerName:"Ahmed Adel",createdAt:iso(30),collectorId:"seed-col",collectorName:"Ahmed Hael",collectedAmount:2600,collectedNote:"",collectedAt:iso(26),treasuryId:"seed-trs",treasuryName:"نورة الدوسري",confirmedAmount:2600,confirmedNote:"",confirmedAt:iso(20)};
+    local.handovers['h2']={branchId:"khurais",declaredAmount:1800,note:"",status:"collected",managerId:"seed-mgr",managerName:"Omran",createdAt:iso(10),collectorId:"seed-col",collectorName:"Ahmed Hael",collectedAmount:1750,collectedNote:"نقص 50 ريال",collectedAt:iso(7)};
+    local.handovers['h3']={branchId:"drive-aziziyah",declaredAmount:3400,note:"يرجى الاستلام قبل الظهر",status:"pending",managerId:"seed-mgr3",managerName:"Abdullah",createdAt:iso(2)};
     saveLocal();
   }
   function todayKey(){ var d=new Date(); return d.toISOString().slice(0,10); }
@@ -630,6 +646,14 @@ function animateValue(el,to){
 /* ===================== DERIVED DATA HELPERS ===================== */
 function branchesInCity(cityId){ return Object.keys(STATE.data.branches).filter(function(id){return STATE.data.branches[id].cityId===cityId;}); }
 function allBranchIds(){ return Object.keys(STATE.data.branches); }
+function normName(s){ return (s||'').trim().toLowerCase(); }
+function branchesForArea(areaManagerName){ return allBranchIds().filter(function(id){ return normName(STATE.data.branches[id].areaManagerName)===normName(areaManagerName); }); }
+function branchesForCollector(collectorName){ return allBranchIds().filter(function(id){ return normName(STATE.data.branches[id].collectorName)===normName(collectorName); }); }
+function scopeToMyCollectorBranches(handovers){
+  var mine=branchesForCollector(STATE.session.name);
+  if(!mine.length) return handovers;
+  return handovers.filter(function(h){ return mine.indexOf(h.branchId)>-1; });
+}
 function salesFor(branchId,period){
   return Object.keys(STATE.data.sales).map(function(id){ return Object.assign({id:id},STATE.data.sales[id]); })
     .filter(function(s){ return (!branchId||s.branchId===branchId) && inPeriod(s.createdAt,period); });
@@ -665,6 +689,7 @@ function sumExpenses(branchId,period){ return expensesFor(branchId,period).reduc
 var navByRole = {
   admin:[['dashboard','dashboard','navDashboard'],['admin','admin','navAdmin']],
   manager:[['dashboard','dashboard','navDashboard'],['sales','sales','navSales'],['expenses','expenses','navExpenses'],['handover','handover','navHandover']],
+  area:[['dashboard','dashboard','navDashboard']],
   collector:[['dashboard','dashboard','navDashboard'],['handover','handover','navHandover']],
   treasury:[['dashboard','dashboard','navDashboard'],['handover','handover','navHandover']]
 };
@@ -682,7 +707,7 @@ function renderShell(){
       '<div class="mini-toggle-row">'+
         '<button class="mini-btn '+(STATE.lang==='ar'?'on':'')+'" data-action="set-lang" data-val="ar">ع</button>'+
         '<button class="mini-btn '+(STATE.lang==='en'?'on':'')+'" data-action="set-lang" data-val="en">EN</button>'+
-        '<button class="mini-btn" data-action="toggle-theme">'+icon(currentIsDark()?'sun':'moon')+'</button>'+
+        '<button class="mini-btn" data-action="toggle-theme">'+icon(currentIsDark()?'sun':'moon','ic-s')+'</button>'+
       '</div>'+
       '<div class="who-card" data-action="open-account"><div class="avatar">'+initials(STATE.session.name)+'</div><div class="who-text"><b>'+esc(STATE.session.name)+'</b><span>'+t('role'+cap(STATE.session.role))+(STATE.session.branchId?' · '+branchName(STATE.session.branchId):'')+'</span></div></div>'+
     '</div>'+
@@ -751,9 +776,10 @@ function renderView(){
 /* ===================== DASHBOARD ===================== */
 function renderDashboard(role){
   if(Store.mode()==='local'){
-    var banner='<div class="card fade-in" style="padding:11px 16px;margin-bottom:16px;display:flex;gap:9px;align-items:center;border-color:var(--gold);background:var(--gold-soft);color:var(--gold);font-size:12px;font-weight:700;">'+icon('alert')+'<span>'+t('localModeBanner')+'</span></div>';
+    var banner='<div class="card fade-in" style="padding:11px 16px;margin-bottom:16px;display:flex;gap:9px;align-items:center;border-color:var(--gold);background:var(--gold-soft);color:var(--gold);font-size:12px;font-weight:700;">'+icon('alert','ic-s')+'<span>'+t('localModeBanner')+'</span></div>';
   } else banner='';
   if(role==='manager') return banner+dashManager();
+  if(role==='area') return banner+dashArea();
   if(role==='collector') return banner+dashCollector();
   if(role==='treasury') return banner+dashTreasury();
   return banner+dashAdmin();
@@ -777,7 +803,7 @@ function dashManager(){
   return html;
 }
 function dashCollector(){
-  var pend=Object.keys(STATE.data.handovers).map(function(id){return Object.assign({id:id},STATE.data.handovers[id]);}).filter(function(h){return h.status==='pending';});
+  var pend=scopeToMyCollectorBranches(Object.keys(STATE.data.handovers).map(function(id){return Object.assign({id:id},STATE.data.handovers[id]);}).filter(function(h){return h.status==='pending';}));
   var mine=Object.keys(STATE.data.handovers).map(function(id){return Object.assign({id:id},STATE.data.handovers[id]);}).filter(function(h){return h.status==='collected';});
   var pendAmt=pend.reduce(function(a,h){return a+Number(h.declaredAmount||0);},0);
   var html='<div class="kpi-grid stagger">'+
@@ -806,6 +832,24 @@ function dashTreasury(){
   '</div></div></div>';
   return html;
 }
+function dashArea(){
+  var myBranches=branchesForArea(STATE.session.name);
+  var scope=myBranches.length?myBranches:null;
+  if(!myBranches.length){
+    return '<div class="card" style="padding:18px;margin-bottom:16px">'+emptyState('building',t('myBranches'),t('noAreaBranches'))+'</div>'+dashAdmin();
+  }
+  var salesToday=myBranches.reduce(function(a,id){return a+sumSalesByType(id,'today',null);},0);
+  var expToday=myBranches.reduce(function(a,id){return a+sumExpenses(id,'today');},0);
+  var cashHeld=myBranches.reduce(function(a,id){return a+cashOnHand(id);},0);
+  var html='<div class="kpi-grid stagger">'+
+    kpi(t('myBranches'),myBranches.length,'',null,true)+
+    kpi(t('todaySales'),salesToday,'',t('sar'))+
+    kpi(t('todayExpenses'),expToday,'',t('sar'))+
+    kpi(t('cashOnHand'),cashHeld,'accent',t('sar'))+
+  '</div>';
+  html+='<div class="section"><div class="section-title">'+t('branchPerf')+'</div><div class="card"><div class="card-body" style="padding-top:12px">'+branchPerfTable(scope)+'</div></div></div>';
+  return html;
+}
 function dashAdmin(){
   var branches=allBranchIds();
   var totalSales=sumSalesByType(null,'today',null);
@@ -825,8 +869,8 @@ function kpi(label,value,cls,suffix,isCount){
     (isCount? '<span data-count-int="'+value+'">'+value+'</span>' : '<span class="mono" data-count="'+value+'">0</span>'+(suffix?' <small>'+suffix+'</small>':''))
     +'</div></div>';
 }
-function branchPerfTable(){
-  var rows=allBranchIds().map(function(id){
+function branchPerfTable(filterIds){
+  var rows=(filterIds||allBranchIds()).map(function(id){
     var s=sumSalesByType(id,'week',null), e=sumExpenses(id,'week'), net=s-e;
     return {id:id,name:branchName(id),city:cityName(STATE.data.branches[id].cityId),s:s,e:e,net:net};
   }).sort(function(a,b){return b.s-a.s;});
@@ -908,7 +952,7 @@ function renderHandover(role){
     '</div></div>';
     html+='<div class="section"><div class="section-title">'+t('handoverHistory')+'</div>'+(hist.length?hist.map(handoverCard.bind(null,role)).join(''):'<div class="card"><div class="card-body">'+emptyState('handover',t('noPending'),'')+'</div></div>')+'</div>';
   } else if(role==='collector'){
-    var pend=handoversFor(null).filter(function(h){return h.status==='pending';});
+    var pend=scopeToMyCollectorBranches(handoversFor(null).filter(function(h){return h.status==='pending';}));
     var mine=handoversFor(null).filter(function(h){return h.status!=='pending';}).slice(0,10);
     html+='<div class="section"><div class="section-title">'+t('pendingPickups')+'</div>'+(pend.length?pend.map(handoverCard.bind(null,role)).join(''):'<div class="card"><div class="card-body">'+emptyState('truck',t('noPending'),t('allCaughtUp'))+'</div></div>')+'</div>';
     html+='<div class="section"><div class="section-title">'+t('handoverHistory')+'</div>'+(mine.length?mine.map(handoverCard.bind(null,role)).join(''):'')+'</div>';
@@ -941,7 +985,7 @@ function handoverCard(role,h){
   return '<div class="card section" style="padding:16px">'+
     '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:10px">'+
       '<div><b style="font-size:14px">'+branchName(h.branchId)+'</b><div class="hint">'+fmtDate(h.createdAt)+'</div></div>'+
-      '<div style="text-align:end"><div class="pill '+pillCls+'">'+pillLabel+'</div>'+(gap?'<div class="pill gap" style="margin-top:4px">'+icon('alert')+' '+t('gapFlag')+'</div>':'')+'</div>'+
+      '<div style="text-align:end"><div class="pill '+pillCls+'">'+pillLabel+'</div>'+(gap?'<div class="pill gap" style="margin-top:4px">'+icon('alert','ic-s')+' '+t('gapFlag')+'</div>':'')+'</div>'+
     '</div>'+
     chainHtml(h)+
     '<div class="divider"></div>'+
@@ -977,7 +1021,7 @@ function adminCities(){
 function adminBranches(){
   var rows=Object.keys(STATE.data.branches).map(function(id){return {id:id,d:STATE.data.branches[id]};});
   return '<div class="card"><div class="card-head"><h3>'+t('manageBranches')+'</h3><button class="btn btn-primary btn-sm" data-action="open-branch">'+icon('plus')+t('addBranch')+'</button></div><div class="card-body">'+
-    (rows.length? rows.map(function(r){return '<div class="row"><div class="ricon">'+icon('building')+'</div><div class="rmain"><b>'+esc(STATE.lang==='ar'?r.d.nameAr:r.d.nameEn)+'</b><div class="rmeta">'+cityName(r.d.cityId)+'</div></div><div class="ramt" style="color:var(--accent)">'+fmtMoney(cashOnHand(r.id))+'</div></div>';}).join('') : emptyState('building',STATE.lang==='ar'?'لا توجد فروع':'No branches',''))+
+    (rows.length? rows.map(function(r){return '<div class="row"><div class="ricon">'+icon('building')+'</div><div class="rmain"><b>'+esc(STATE.lang==='ar'?r.d.nameAr:r.d.nameEn)+'</b><div class="rmeta"><span>'+cityName(r.d.cityId)+'</span>'+(r.d.managerName?'<span>· '+t('managerLbl')+': '+esc(r.d.managerName)+'</span>':'')+(r.d.areaManagerName?'<span>· '+t('areaManagerLbl')+': '+esc(r.d.areaManagerName)+'</span>':'')+(r.d.collectorName?'<span>· '+t('collectorLbl')+': '+esc(r.d.collectorName)+'</span>':'')+'</div></div><div class="ramt" style="color:var(--accent)">'+fmtMoney(cashOnHand(r.id))+'</div></div>';}).join('') : emptyState('building',STATE.lang==='ar'?'لا توجد فروع':'No branches',''))+
   '</div></div>';
 }
 function adminStaff(){
@@ -1050,7 +1094,7 @@ function openExpenseSheet(){
     '<div class="field"><label>'+t('category')+'</label><select name="category">'+EXP_CATS.map(function(c){return '<option value="'+c.id+'">'+catLabel(EXP_CATS,c.id)+'</option>';}).join('')+'</select></div>'+
     '<div class="field"><label>'+t('amount')+'</label><div class="amt-input"><input type="number" step="0.01" min="0" name="amount" required placeholder="0"><span class="cur">'+t('sar')+'</span></div></div>'+
     '<div class="field"><label>'+t('note')+'</label><textarea name="note" placeholder="'+t('notePh')+'"></textarea></div>'+
-    '<div class="field"><label>'+t('receiptPhoto')+'</label><div id="receipt-zone"><div class="upload-box" id="upload-trigger">'+icon('camera')+'<div style="margin-top:6px">'+t('uploadReceipt')+'</div></div></div><input type="file" accept="image/*" id="receipt-input" style="display:none"></div>'+
+    '<div class="field"><label>'+t('receiptPhoto')+'</label><div id="receipt-zone"><div class="upload-box" id="upload-trigger">'+icon('camera','ic-s')+'<div style="margin-top:6px">'+t('uploadReceipt')+'</div></div></div><input type="file" accept="image/*" id="receipt-input" style="display:none"></div>'+
     '<button type="submit" class="btn btn-primary btn-block">'+icon('check')+t('save')+'</button>'+
   '</form>';
   openSheet(t('addExpense'),body,function(overlay){
@@ -1146,12 +1190,15 @@ function openBranchSheet(){
   var body='<div class="field"><label>'+t('branchCity')+'</label><select id="b-city">'+cityOpts+'</select></div>'+
     '<div class="field"><label>'+t('branchNameAr')+'</label><input type="text" id="b-ar" dir="rtl"></div>'+
     '<div class="field"><label>'+t('branchNameEn')+'</label><input type="text" id="b-en"></div>'+
+    '<div class="field"><label>'+t('managerLbl')+'</label><input type="text" id="b-mgr" placeholder="'+t('optional')+'"></div>'+
+    '<div class="field"><label>'+t('areaManagerLbl')+'</label><input type="text" id="b-area" placeholder="'+t('optional')+'"></div>'+
+    '<div class="field"><label>'+t('collectorLbl')+'</label><input type="text" id="b-col" placeholder="'+t('optional')+'"></div>'+
     '<button class="btn btn-primary btn-block" id="b-submit">'+icon('check')+t('save')+'</button>';
   openSheet(t('addBranch'),body,function(overlay){
     overlay.querySelector('#b-submit').onclick=async function(){
       var ar=overlay.querySelector('#b-ar').value.trim(), en=overlay.querySelector('#b-en').value.trim(), cityId=overlay.querySelector('#b-city').value;
       if(!ar||!en||!cityId){ toast(t('errFill'),'err'); return; }
-      await Store.add('branches',{nameAr:ar,nameEn:en,cityId:cityId,active:true,order:Object.keys(STATE.data.branches).length});
+      await Store.add('branches',{nameAr:ar,nameEn:en,cityId:cityId,managerName:overlay.querySelector('#b-mgr').value.trim(),areaManagerName:overlay.querySelector('#b-area').value.trim(),collectorName:overlay.querySelector('#b-col').value.trim(),active:true,order:Object.keys(STATE.data.branches).length});
       closeSheet(); toast(t('savedOk'));
     };
   });
@@ -1163,7 +1210,7 @@ var loginMode='new';
 function renderLogin(){
   document.body.setAttribute('dir', STATE.lang==='ar'?'rtl':'ltr');
   var branchOpts=Object.keys(STATE.data.branches).map(function(id){return '<option value="'+id+'">'+esc(STATE.lang==='ar'?STATE.data.branches[id].nameAr:STATE.data.branches[id].nameEn)+'</option>';}).join('');
-  var roles=[['manager','building','roleManager'],['collector','truck','roleCollector'],['treasury','bank','roleTreasury'],['admin','admin','roleAdmin']];
+  var roles=[['manager','building','roleManager'],['area','city','roleArea'],['collector','truck','roleCollector'],['treasury','bank','roleTreasury'],['admin','admin','roleAdmin']];
   var staffIds=Object.keys(STATE.data.staff);
   var nameOpts=staffIds.map(function(id){return '<option value="'+id+'">'+esc(STATE.data.staff[id].name)+' — '+t('role'+cap(STATE.data.staff[id].role))+'</option>';}).join('');
 
@@ -1176,7 +1223,7 @@ function renderLogin(){
       '<div class="field"><label>'+t('pinConfirm')+'</label><input type="password" inputmode="numeric" pattern="[0-9]*" maxlength="6" name="pin2" required placeholder="'+t('pinPh')+'"></div>'+
     '</div>'+
     '<button type="submit" class="btn btn-primary btn-block">'+icon('check')+t('createAccount')+'</button>'+
-    '<div class="hint" style="text-align:center;margin-top:10px">'+icon('user',null)+' '+t('pinSecurityNote')+'</div>'+
+    '<div class="hint" style="text-align:center;margin-top:10px">'+t('pinSecurityNote')+'</div>'+
   '</form>';
 
   var existingForm='<form id="existing-form" '+(loginMode!=='existing'?'hidden':'')+'>'+
