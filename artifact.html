@@ -358,6 +358,17 @@ button{font-family:inherit}
 .req-actions{display:flex;gap:10px;margin-top:14px}
 .req-actions .btn{flex:1}
 
+.link-warn{
+  display:flex;align-items:center;gap:14px;margin-bottom:20px;padding:15px 18px;border-radius:var(--r);
+  background:linear-gradient(135deg,rgba(239,174,78,.15),rgba(239,174,78,.04));
+  border:1px solid rgba(239,174,78,.4);box-shadow:0 10px 36px -16px rgba(239,174,78,.5);
+}
+.link-warn .lw-ic{flex:none;width:38px;height:38px;border-radius:12px;display:flex;align-items:center;
+  justify-content:center;background:rgba(239,174,78,.2);color:var(--gold)}
+.link-warn .lw-body{flex:1;min-width:0}
+.link-warn .lw-body b{display:block;font-size:13.5px;color:var(--gold)}
+.link-warn .lw-body span{display:block;margin-top:3px;font-size:11.5px;color:var(--ink-dim);line-height:1.6}
+
 /* ---------- custom dropdown ---------- */
 .xsel{position:relative;width:100%}
 .xsel>select{position:absolute;opacity:0;pointer-events:none;width:0;height:0}
@@ -861,6 +872,7 @@ var EXP_CATS = [
   {id:"hospitality", ar:"ضيافة", en:"Hospitality"},
   {id:"other", ar:"أخرى", en:"Other"}
 ];
+var APP_BUILD = "2026-09-26 18:46";
 var ROLES = ["admin","manager","area","collector","treasury"];
 /* Staff roster exactly as in the WINS org sheet. A person may hold more than one role
    (e.g. Mohamed Nasr is both area manager and collector for Al Aziziyah). */
@@ -1113,6 +1125,12 @@ fHidingSub:{ar:"أنت تعرض ({r}) — البيانات المسجّلة في
 fShowToday:{ar:"عرض اليوم",en:"Show today"},
 fShowAll:{ar:"عرض الكل",en:"Show all"},
 fStaleReset:{ar:"أُعيدت الفترة إلى اليوم",en:"Period reset to today"},
+appVersion:{ar:"إصدار التطبيق",en:"App version"},
+checkUpdate:{ar:"تحديث التطبيق",en:"Update app"},
+updating:{ar:"جارٍ جلب أحدث نسخة...",en:"Fetching the latest version..."},
+notLinkedTitle:{ar:"غير مرتبط بجوجل شيت",en:"Not linked to Google Sheets"},
+notLinkedBody:{ar:"ما تسجّله محفوظ على هذا الجهاز فقط ولا يصل بقية الفريق. اطلب من الإدارة رابط الربط.",en:"What you record stays on this device and never reaches the team. Ask an admin for the link."},
+linkNow:{ar:"ربط الآن",en:"Link now"},
 cannotSelfApprove:{ar:"لا يمكنك اعتماد عملية قمت بها بنفسك — يجب أن يعتمدها شخص آخر",en:"You cannot approve a step you performed yourself — another person must approve it"},
 waitingOn:{ar:"بانتظار: {who}",en:"Waiting on: {who}"},
 sheetsTitle:{ar:"ربط جوجل شيت",en:"Google Sheets link"},
@@ -2139,7 +2157,12 @@ function renderView(){
 /* ===================== DASHBOARD ===================== */
 function renderDashboard(role){
   if(Store.mode()==='local'||Store.mode()==='sheets-offline'){
-    var banner='<div class="card fade-in" style="padding:11px 16px;margin-bottom:16px;display:flex;gap:9px;align-items:center;border-color:var(--gold);background:var(--gold-soft);color:var(--gold);font-size:12px;font-weight:700;">'+icon('alert','ic-s')+'<span>'+t('localModeBanner')+'</span></div>';
+    var canLink = STATE.session.role==='admin';
+    var banner='<div class="link-warn fade-in">'+
+      '<div class="lw-ic">'+icon('alert','ic-s')+'</div>'+
+      '<div class="lw-body"><b>'+t('notLinkedTitle')+'</b><span>'+t('notLinkedBody')+'</span></div>'+
+      (canLink?'<button class="btn btn-primary btn-sm" data-action="go-link">'+t('linkNow')+'</button>':'')+
+    '</div>';
   } else banner='';
   if(role==='manager') return banner+billAlertCard()+dashManager();
   if(role==='area') return banner+dashArea();
@@ -2985,7 +3008,9 @@ function openAccountSheet(){
   }
   var body='<div style="display:flex;align-items:center;gap:13px;margin-bottom:20px"><div class="avatar" style="width:48px;height:48px;font-size:18px;border-radius:15px">'+initials(STATE.session.name)+'</div><div><b style="font-size:16px;display:block">'+esc(STATE.session.name)+'</b><span class="hint">'+t('role'+cap(STATE.session.role))+(STATE.session.branchId?' · '+branchName(STATE.session.branchId):'')+'</span></div></div>'+
     switcher+
-    '<button class="btn btn-ghost btn-block" data-action="logout">'+icon('logout')+t('notYou')+'</button>';
+    '<button class="btn btn-ghost btn-block" data-action="logout">'+icon('logout')+t('notYou')+'</button>'+
+    '<button class="btn btn-ghost btn-block" style="margin-top:10px" data-action="force-update">'+icon('clock')+t('checkUpdate')+'</button>'+
+    '<div class="hint" style="text-align:center;margin-top:12px">'+t('appVersion')+': <span class="mono">'+APP_BUILD+'</span></div>';
   openSheet(t('myAccount'),body);
 }
 
@@ -3003,6 +3028,19 @@ document.addEventListener('click', function(e){
     STATE.session.role=el.getAttribute('data-role');
     localStorage.setItem('wins_session',encodeURIComponent(JSON.stringify(STATE.session)));
     STATE.tab='dashboard'; closeSheet(); renderShell(); toast(t('roleSwitched'));
+  }
+  else if(action==='go-link'){ STATE.tab='admin'; adminSub='integration'; renderShell(); }
+  else if(action==='force-update'){
+    toast(t('updating'));
+    /* Bypass the browser and any CDN copy: clear caches, then reload with a
+       fresh query so a stale build can never persist. */
+    (async function(){
+      try{ if(window.caches){ var ks=await caches.keys(); await Promise.all(ks.map(function(k){return caches.delete(k);})); } }catch(e){}
+      setTimeout(function(){
+        var u=location.origin+location.pathname+'?v='+Date.now();
+        location.replace(u);
+      }, 600);
+    })();
   }
   else if(action==='logout'){
     askConfirm(t('logoutConfirm'),function(){

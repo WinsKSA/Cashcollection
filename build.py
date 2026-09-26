@@ -10,6 +10,10 @@ HEAD = '''<!doctype html>
 <title>ونس — إدارة النقدية | WINS Cash Control</title>
 <meta name="description" content="منظومة تحصيل وتسليم النقد لفروع ونس — WINS branch cash collection & handover control.">
 <meta name="theme-color" content="#06070B">
+<!-- GitHub Pages serves this file with a 10-minute cache. These ask the browser
+     not to hold its own copy on top of that, so an update shows up sooner. -->
+<meta http-equiv="Cache-Control" content="no-cache, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
 <link rel="icon" type="image/png" sizes="64x64" href="favicon-64.png">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
