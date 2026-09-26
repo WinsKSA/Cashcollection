@@ -299,6 +299,14 @@ button{font-family:inherit}
 }
 .fchip:hover{border-color:var(--line-bright);color:var(--ink)}
 .fchip.on{background:rgba(201,160,77,.16);border-color:rgba(201,160,77,.45);color:var(--brand-lift)}
+/* A custom range is the one that can hide today's work, so it is loud. */
+.fchip.on.custom{background:linear-gradient(135deg,var(--brand-lift),var(--brand));color:#241802;
+  border-color:transparent;box-shadow:var(--glow-brand)}
+.filter-hint{margin:4px 0 10px;padding:16px 18px;border-radius:15px;text-align:center;
+  background:var(--gold-soft);border:1px solid rgba(239,174,78,.34)}
+.filter-hint b{display:block;font-size:13.5px;color:var(--gold)}
+.filter-hint span{display:block;margin-top:5px;font-size:12px;color:var(--ink-dim);line-height:1.6}
+.fh-actions{display:flex;gap:9px;justify-content:center;margin-top:13px;flex-wrap:wrap}
 .fb-range{direction:ltr;font-family:var(--font-mono);font-size:11px}
 @media(max-width:860px){
   .filter-bar{padding:9px 16px;top:calc(58px + env(safe-area-inset-top,0px))}
@@ -1100,6 +1108,11 @@ fFrom:{ar:"من",en:"From"},
 fTo:{ar:"إلى",en:"To"},
 fApply:{ar:"تطبيق",en:"Apply"},
 fRange:{ar:"الفترة",en:"Period"},
+fHiding:{ar:"لا توجد بيانات في الفترة المحددة",en:"Nothing recorded in the selected period"},
+fHidingSub:{ar:"أنت تعرض ({r}) — البيانات المسجّلة في أيام أخرى مخفية",en:"You are viewing ({r}) — entries from other days are hidden"},
+fShowToday:{ar:"عرض اليوم",en:"Show today"},
+fShowAll:{ar:"عرض الكل",en:"Show all"},
+fStaleReset:{ar:"أُعيدت الفترة إلى اليوم",en:"Period reset to today"},
 cannotSelfApprove:{ar:"لا يمكنك اعتماد عملية قمت بها بنفسك — يجب أن يعتمدها شخص آخر",en:"You cannot approve a step you performed yourself — another person must approve it"},
 waitingOn:{ar:"بانتظار: {who}",en:"Waiting on: {who}"},
 sheetsTitle:{ar:"ربط جوجل شيت",en:"Google Sheets link"},
@@ -1879,7 +1892,7 @@ function reconCard(branchId){
               '<b class="mono">'+(r.diff>0?'+':'')+fmtMoney(r.diff)+'</b>'+
               '<em>'+label+'</em></div>'+
           '</div>'
-        : '<div class="hint" style="padding:6px 0 10px">'+t('reconNone')+'</div>')+
+        : '<div class="hint" style="padding:6px 0 10px">'+t('reconNone')+' — '+rangeLabel()+'</div>'+filterHint())+
       '<div class="hint">'+t('reconNoteHint')+'</div>'+
     '</div></div>';
 }
@@ -1918,7 +1931,19 @@ function openReconSheet(branchId){
    every role. Balances that must be lifetime totals — cash on hand, petty
    cash, bills outstanding — deliberately ignore it. */
 function loadRange(){
-  try{ var r=JSON.parse(localStorage.getItem('wins_range')||'null'); if(r&&r.key) return r; }catch(e){}
+  try{
+    var r=JSON.parse(localStorage.getItem('wins_range')||'null');
+    if(r&&r.key){
+      /* A custom range picked days ago must not silently persist: it hides
+         everything recorded since, which reads as "my data disappeared". */
+      if(r.key==='custom'){
+        var end=r.to?new Date(r.to):null;
+        var today=new Date(); today.setHours(0,0,0,0);
+        if(!end || end<today) return {key:'today',from:null,to:null};
+      }
+      return r;
+    }
+  }catch(e){}
   return {key:'today',from:null,to:null};
 }
 function saveRange(){ try{ localStorage.setItem('wins_range',JSON.stringify(STATE.range)); }catch(e){} }
@@ -1952,7 +1977,7 @@ function filterBar(){
     keys.map(function(k){
       return '<button class="fchip'+(r.key===k[0]?' on':'')+'" data-action="set-range" data-key="'+k[0]+'">'+t(k[1])+'</button>';
     }).join('')+
-    '<button class="fchip'+(r.key==='custom'?' on':'')+'" data-action="open-range">'+icon('clock','ic-s')+
+    '<button class="fchip'+(r.key==='custom'?' on custom':'')+'" data-action="open-range">'+icon('clock','ic-s')+
       (r.key==='custom'&&r.from&&r.to?'<span class="fb-range">'+rangeLabel()+'</span>':t('fCustom'))+'</button>'+
   '</div>';
 }
@@ -2135,7 +2160,7 @@ function dashManager(){
     kpi(rlbl('totExpenses'),exp,'',t('sar'))+
     '</div>';
   html+='<div class="section"><div class="section-title">'+t('recentActivity')+'</div><div class="card"><div class="card-body">'+
-    (recent.length?recent.map(activityRow).join(''):emptyState('clock',t('noSalesYet'),t('startAdding')))+
+    (recent.length?recent.map(activityRow).join(''):emptyStateFiltered('clock',t('noSalesYet'),t('startAdding')))+
   '</div></div></div>';
   return html;
 }
@@ -2234,6 +2259,21 @@ function activityRow(item){
   var title=isSale? (STATE.lang==='ar'?'عملية بيع':'Sale') + ' · '+catLabel(PAY_TYPES,item.type) : (STATE.lang==='ar'?'مصروف':'Expense')+' · '+catLabel(EXP_CATS,item.category);
   return '<div class="row"><div class="ricon">'+icon(ic)+'</div><div class="rmain"><b>'+title+'</b><div class="rmeta"><span>'+fmtDate(item.createdAt)+'</span><span>·</span><span>'+esc(item.staffName||'')+'</span>'+(item.note?'<span>·</span><span>'+esc(item.note)+'</span>':'')+'</div></div><div class="ramt '+(isSale?'pos':'neg')+'">'+(isSale?'+':'−')+' '+fmtMoney(item.amount)+'</div></div>';
 }
+/* When a list is empty only because of the active filter, say so and offer a
+   way out — otherwise an empty screen reads as data loss. */
+function filterHint(){
+  if(STATE.range.key==='all') return '';
+  return '<div class="filter-hint">'+
+    '<b>'+t('fHiding')+'</b>'+
+    '<span>'+t('fHidingSub').replace('{r}', rangeLabel())+'</span>'+
+    '<div class="fh-actions">'+
+      '<button class="btn btn-ghost btn-sm" data-action="set-range" data-key="today">'+t('fShowToday')+'</button>'+
+      '<button class="btn btn-primary btn-sm" data-action="set-range" data-key="all">'+t('fShowAll')+'</button>'+
+    '</div></div>';
+}
+function emptyStateFiltered(ic,title,sub){
+  return '<div class="empty">'+icon(ic)+'<b>'+title+'</b><span>'+(sub||'')+'</span></div>'+filterHint();
+}
 function emptyState(ic,title,sub){
   return '<div class="empty">'+icon(ic)+'<b>'+title+'</b><span>'+(sub||'')+'</span></div>';
 }
@@ -2248,7 +2288,7 @@ function renderSales(){
   '</div>';
   html+=reconCard(bId);
   html+='<div class="section"><div class="card"><div class="card-head"><h3>'+t('salesLog')+'</h3><button class="btn btn-primary btn-sm" data-action="open-sale">'+icon('plus')+t('addSale')+'</button></div><div class="card-body">'+
-    (list.length? list.map(saleRow).join('') : emptyState('sales',t('noSalesYet'),t('startAdding')))+
+    (list.length? list.map(saleRow).join('') : emptyStateFiltered('sales',t('noSalesYet'),t('startAdding')))+
   '</div></div></div>';
   html+='<button class="fab" data-action="open-sale">'+icon('plus')+'</button>';
   return html;
@@ -2284,7 +2324,7 @@ function renderExpenses(){
     '</div>';
   }
   html+='<div class="section"><div class="card"><div class="card-head"><h3>'+t('expenseLog')+'</h3><button class="btn btn-primary btn-sm" data-action="open-expense">'+icon('plus')+t('addExpense')+'</button></div><div class="card-body">'+
-    (list.length? list.map(expenseRow).join('') : emptyState('expenses',t('noExpYet'),t('startAdding')))+
+    (list.length? list.map(expenseRow).join('') : emptyStateFiltered('expenses',t('noExpYet'),t('startAdding')))+
   '</div></div></div>';
   html+='<button class="fab" data-action="open-expense">'+icon('plus')+'</button>';
   return html;
