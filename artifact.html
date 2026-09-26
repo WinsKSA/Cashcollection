@@ -1217,6 +1217,7 @@ var Store = (function(){
   var local=null;
   var listeners={}; // path -> [cb]
   var apiUrl=null, pollTimer=null, lastSig='', pendingPush=[], pushing=false, pushFailures=0;
+  var recentWrites={}; // col/id -> timestamp, shields fresh writes from a stale poll
 
   /* ---- Google Sheets backend -------------------------------------------
      The endpoint URL is never committed to the repository: it is supplied
@@ -1235,7 +1236,12 @@ var Store = (function(){
   }
   function blankDb(){ var o={}; COLS.forEach(function(c){ o[c]={}; }); return o; }
   async function apiGet(url){
-    var r=await fetch(url,{method:'GET',redirect:'follow'});
+    /* Apps Script serves GET through script.googleusercontent.com, whose
+       responses are cacheable. Without busting it, a poll can return a
+       snapshot taken before the row that was just written, and the merge
+       below would erase that row locally — a save that looks like it failed. */
+    var bust=url+(url.indexOf('?')>-1?'&':'?')+'t='+Date.now();
+    var r=await fetch(bust,{method:'GET',redirect:'follow',cache:'no-store'});
     var j=await r.json();
     if(!j||!j.ok) throw new Error((j&&j.error)||'bad response');
     return j.data;
@@ -1251,6 +1257,7 @@ var Store = (function(){
   }
   function queuePush(op,col,id,data){
     if(mode!=='sheets') return;
+    recentWrites[col+'/'+id]=Date.now();
     pendingPush.push({op:op,collection:col,id:id,data:data});
     flushPush();
   }
@@ -1289,6 +1296,15 @@ var Store = (function(){
          reports only the collections it knows about, and blanking them here
          would silently destroy local records that were never uploaded. */
       COLS.forEach(function(c){ if(!fresh[c]) fresh[c]=(local&&local[c])||{}; });
+      /* Re-apply anything written in the last 30s that the server has not
+         echoed back yet, so an in-flight or just-committed write is never
+         wiped by a slightly older snapshot. */
+      var now=Date.now();
+      Object.keys(recentWrites).forEach(function(k){
+        if(now-recentWrites[k]>30000){ delete recentWrites[k]; return; }
+        var parts=k.split('/'), col=parts[0], id=parts.slice(1).join('/');
+        if(local&&local[col]&&local[col][id]&&fresh[col]&&!fresh[col][id]) fresh[col][id]=local[col][id];
+      });
       var sig=signature(fresh);
       if(sig!==lastSig){ lastSig=sig; local=fresh; saveLocal(); COLS.forEach(emit); }
     }catch(e){ /* stay on the cached copy until the network returns */ }
