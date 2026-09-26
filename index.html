@@ -244,6 +244,8 @@ button{font-family:inherit}
   padding:7px 13px;border:1px solid var(--line);border-radius:99px;background:var(--surface);
 }
 .pulse i{width:7px;height:7px;border-radius:50%;background:var(--mint);box-shadow:0 0 10px var(--mint);animation:livePulse 2s ease-in-out infinite}
+.pulse.bad{border-color:rgba(255,107,107,.45);color:var(--rose)}
+.pulse.bad i{background:var(--rose);box-shadow:0 0 10px var(--rose)}
 @keyframes livePulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.35;transform:scale(.7)}}
 #view{padding:26px 30px 120px;max-width:1240px}
 
@@ -340,6 +342,31 @@ button{font-family:inherit}
 @keyframes reconPulse{0%,100%{box-shadow:0 0 0 0 rgba(255,107,107,.32)}60%{box-shadow:0 0 0 10px rgba(255,107,107,0)}}
 .recon-ok{color:var(--mint);font-weight:700}
 .recon-bad{color:var(--rose);font-weight:800}
+
+.linkbtn{
+  display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:8px;cursor:pointer;
+  border:1px solid rgba(201,160,77,.35);background:rgba(201,160,77,.12);color:var(--brand-lift);
+  font-family:inherit;font-size:10.5px;font-weight:800;
+}
+.linkbtn:hover{background:rgba(201,160,77,.2)}
+.chip.pendingreq{background:var(--gold-soft);color:var(--gold);border-color:rgba(239,174,78,.35)}
+.chip.corrected{background:var(--violet-soft);color:var(--violet);border-color:rgba(139,123,255,.3)}
+.note-lock{display:flex;gap:10px;align-items:flex-start;padding:13px 15px;border-radius:13px;margin-bottom:16px;
+  background:var(--gold-soft);border:1px solid rgba(239,174,78,.32);color:var(--gold);
+  font-size:12.5px;font-weight:700;line-height:1.6}
+.req-card.pending{border-color:rgba(239,174,78,.35)}
+.req-amounts{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin:14px 0 12px;
+  padding:14px;border-radius:14px;border:1px solid var(--line);background:rgba(255,255,255,.03)}
+.req-amounts>div span{display:block;font-size:9.5px;font-weight:800;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--ink-faint)}
+.req-amounts>div b{display:block;margin-top:4px;font-size:17px;font-weight:600}
+.req-amounts b.mint{color:var(--mint)}
+.req-amounts b.rose{color:var(--rose)}
+.req-arrow{font-size:19px;color:var(--ink-faint)}
+.req-reason{padding:12px 14px;border-radius:12px;background:rgba(255,255,255,.035);
+  border:1px solid var(--line);font-size:13px;line-height:1.7;color:var(--ink-dim)}
+.req-actions{display:flex;gap:10px;margin-top:14px}
+.req-actions .btn{flex:1}
 
 /* ---------- always-on totals strip ---------- */
 .totals-strip{
@@ -1002,6 +1029,35 @@ reconNone:{ar:"لم يُسجَّل إجمالي تاب سينس لهذه الف�
 reconNoteHint:{ar:"يُقارن بإيراد المبيعات المُدخلة (بدون الضيافة)",en:"Compared against entered revenue (hospitality excluded)"},
 reconSaved:{ar:"تم تسجيل إجمالي تاب سينس",en:"TopSense total recorded"},
 reconBranches:{ar:"فروع بها فروقات",en:"Branches with variance"},
+navRequests:{ar:"طلبات التعديل",en:"Edit Requests"},
+lockedHint:{ar:"لا يمكن تعديل العملية بعد حفظها — اطلب موافقة المحاسب",en:"Entries cannot be edited after saving — request the accountant's approval"},
+requestEdit:{ar:"طلب تعديل",en:"Request edit"},
+pendingApproval:{ar:"بانتظار موافقة المحاسب",en:"Awaiting accountant"},
+correctedTag:{ar:"مُعدّل",en:"Corrected"},
+wasAmount:{ar:"كان",en:"was"},
+newAmount:{ar:"المبلغ الصحيح",en:"Correct amount"},
+currentAmount:{ar:"المبلغ المسجّل حالياً",en:"Currently recorded"},
+editReason:{ar:"سبب التعديل",en:"Reason for the change"},
+editReasonPh:{ar:"اشرح سبب الخطأ بوضوح — سيراه المحاسب",en:"Explain the error clearly — the accountant will read this"},
+submitRequest:{ar:"إرسال الطلب للمحاسب",en:"Send to accountant"},
+requestSent:{ar:"تم إرسال الطلب للمحاسب",en:"Request sent to the accountant"},
+requestExists:{ar:"يوجد طلب معلّق على هذه العملية",en:"A request is already pending on this entry"},
+approveReq:{ar:"اعتماد التعديل",en:"Approve"},
+rejectReq:{ar:"رفض",en:"Reject"},
+decisionNote:{ar:"ملاحظة القرار (اختياري)",en:"Decision note (optional)"},
+reqApproved:{ar:"تم اعتماد التعديل وتصحيح المبلغ",en:"Approved — the amount was corrected"},
+reqRejected:{ar:"تم رفض الطلب",en:"Request rejected"},
+noRequests:{ar:"لا توجد طلبات تعديل",en:"No edit requests"},
+noRequestsSub:{ar:"طلبات تصحيح المبالغ من الفروع تظهر هنا",en:"Correction requests from branches appear here"},
+reqPending:{ar:"معلّقة",en:"Pending"},
+reqHistory:{ar:"الطلبات السابقة",en:"Past requests"},
+reqOn:{ar:"على",en:"on"},
+saleWord:{ar:"عملية بيع",en:"Sale"},
+expenseWord:{ar:"مصروف",en:"Expense"},
+onlyOwner:{ar:"يمكن لمن سجّل العملية فقط طلب تعديلها",en:"Only the person who recorded the entry can request a change"},
+syncFailed:{ar:"تعذّر الحفظ في جوجل شيت — سيُعاد المحاولة تلقائياً",en:"Could not save to Google Sheets — will retry automatically"},
+syncBack:{ar:"تمت المزامنة مع جوجل شيت",en:"Synced to Google Sheets"},
+syncPending:{ar:"بانتظار المزامنة",en:"Sync pending"},
 totBranches:{ar:"الفروع",en:"Branches"},
 totToCollect:{ar:"مطلوب تحصيله",en:"To collect"},
 totAwaiting:{ar:"بانتظار التأكيد",en:"Awaiting"},
@@ -1138,7 +1194,7 @@ var Store = (function(){
   var COLS=['cities','branches','staff','sales','expenses','handovers','editRequests','bills','systemSales'];
   var local=null;
   var listeners={}; // path -> [cb]
-  var apiUrl=null, pollTimer=null, lastSig='', pendingPush=[], pushing=false;
+  var apiUrl=null, pollTimer=null, lastSig='', pendingPush=[], pushing=false, pushFailures=0;
 
   /* ---- Google Sheets backend -------------------------------------------
      The endpoint URL is never committed to the repository: it is supplied
@@ -1180,9 +1236,24 @@ var Store = (function(){
     if(pushing||!pendingPush.length||!apiUrl) return;
     pushing=true;
     var batch=pendingPush.splice(0,20);
-    try{ await apiPost({op:'batch',writes:batch}); }
-    catch(e){ pendingPush=batch.concat(pendingPush); } // keep for the next attempt
+    try{
+      await apiPost({op:'batch',writes:batch});
+      if(pushFailures){ pushFailures=0; notifySync(true); }
+    }
+    catch(e){
+      pendingPush=batch.concat(pendingPush); // keep for the next attempt
+      pushFailures++;
+      /* Surface it: a save that never reaches the sheet used to fail in
+         silence, and the next poll would make the row disappear. */
+      if(pushFailures===2) notifySync(false);
+    }
     finally{ pushing=false; if(pendingPush.length) setTimeout(flushPush,1500); }
+  }
+  function notifySync(ok){
+    try{
+      if(typeof toast==='function') toast(ok?t('syncBack'):t('syncFailed'), ok?'ok':'err');
+      if(typeof updateTopbar==='function') updateTopbar();
+    }catch(e){}
   }
   function signature(db){
     var n=''; COLS.forEach(function(c){ n+=c+':'+Object.keys(db[c]||{}).length+';'; });
@@ -1283,6 +1354,8 @@ var Store = (function(){
       return writes.length;
     },
     syncNow:pollOnce,
+    pending:function(){ return pendingPush.length; },
+    failing:function(){ return pushFailures>=2; },
     onCollection(col, cb){
       if(mode==='db'){
         return dbns.collection(col).onSnapshot(function(snap){
@@ -1447,11 +1520,11 @@ function treasuryPettyCash(){
 
 /* ===================== RENDER: SHELL ===================== */
 var navByRole = {
-  admin:[['dashboard','dashboard','navDashboard'],['bills','alert','navBills'],['admin','admin','navAdmin']],
+  admin:[['dashboard','dashboard','navDashboard'],['bills','alert','navBills'],['requests','check','navRequests'],['admin','admin','navAdmin']],
   manager:[['dashboard','dashboard','navDashboard'],['sales','sales','navSales'],['expenses','expenses','navExpenses'],['bills','alert','navBills'],['handover','handover','navHandover']],
   area:[['dashboard','dashboard','navDashboard'],['bills','alert','navBills']],
   collector:[['dashboard','dashboard','navDashboard'],['handover','handover','navHandover']],
-  treasury:[['dashboard','dashboard','navDashboard'],['handover','handover','navHandover'],['expenses','expenses','navExpenses'],['bills','alert','navBills']]
+  treasury:[['dashboard','dashboard','navDashboard'],['handover','handover','navHandover'],['requests','check','navRequests'],['expenses','expenses','navExpenses'],['bills','alert','navBills']]
 };
 
 function renderShell(){
@@ -1500,7 +1573,7 @@ function currentIsDark(){
 function esc(s){ var d=document.createElement('div'); d.textContent=s==null?'':String(s); return d.innerHTML; }
 
 function updateTopbar(){
-  var titleMap={dashboard:'navDashboard',sales:'navSales',expenses:'navExpenses',handover:'navHandover',bills:'navBills',admin:'navAdmin'};
+  var titleMap={dashboard:'navDashboard',sales:'navSales',expenses:'navExpenses',handover:'navHandover',bills:'navBills',requests:'navRequests',admin:'navAdmin'};
   var titleEl=document.getElementById('topbar-title');
   if(titleEl) titleEl.textContent=t(titleMap[STATE.tab]||'navDashboard');
   var subEl=document.getElementById('topbar-sub');
@@ -1514,7 +1587,13 @@ function updateTopbar(){
   if(pulseText){
     var net=Object.keys(STATE.data.handovers).length;
     var m=Store.mode();
-    pulseText.textContent = (m==='db'||m==='sheets') ? (STATE.lang==='ar'?'مباشر':'Live')
+    var box=document.getElementById('pulse-box');
+    var failing = Store.failing && Store.failing();
+    var queued = Store.pending ? Store.pending() : 0;
+    if(box) box.className = 'pulse'+(failing?' bad':'');
+    pulseText.textContent = failing ? t('syncFailed').split('—')[0].trim()
+      : queued ? t('syncPending')
+      : (m==='db'||m==='sheets') ? (STATE.lang==='ar'?'مباشر':'Live')
       : m==='sheets-offline' ? (STATE.lang==='ar'?'غير متصل':'Offline')
       : (STATE.lang==='ar'?'محلي':'Local');
   }
@@ -1523,6 +1602,139 @@ function updateTopbar(){
 
 
 
+
+
+/* ===================== EDIT LOCK + ACCOUNTANT APPROVAL =====================
+   Once a sale or an expense is saved it is final. The person who recorded it
+   may ask for a correction; only the accountant (treasury) can approve, and
+   approving rewrites the amount while keeping the original on the record. */
+var EDITABLE = {sales:'saleWord', expenses:'expenseWord'};
+
+function requestsAll(){
+  return Object.keys(STATE.data.editRequests||{})
+    .map(function(id){ return Object.assign({id:id}, STATE.data.editRequests[id]); })
+    .sort(function(a,b){ return new Date(b.requestedAt||0)-new Date(a.requestedAt||0); });
+}
+function pendingRequestFor(target,targetId){
+  var all=requestsAll();
+  for(var i=0;i<all.length;i++){
+    if(all[i].target===target && all[i].targetId===targetId && all[i].status==='pending') return all[i];
+  }
+  return null;
+}
+function pendingRequestCount(){
+  return requestsAll().filter(function(r){ return r.status==='pending'; }).length;
+}
+/* The row's own lock state: a chip explaining why it cannot be edited, and a
+   request button for whoever recorded it. */
+function lockControls(target,rec){
+  var pend=pendingRequestFor(target,rec.id);
+  var out='';
+  if(rec.correctedAt){
+    out+='<span class="chip corrected">'+t('correctedTag')+' · '+t('wasAmount')+' '+fmtMoney(rec.originalAmount)+'</span>';
+  }
+  if(pend){
+    out+='<span class="chip pendingreq">'+t('pendingApproval')+'</span>';
+  } else if(rec.staffId===STATE.session.id){
+    out+='<button class="linkbtn" data-action="open-edit-req" data-target="'+target+'" data-id="'+rec.id+'">'+
+         icon('alert','ic-s')+' '+t('requestEdit')+'</button>';
+  }
+  return out;
+}
+function openEditRequestSheet(target,targetId){
+  var rec=(STATE.data[target]||{})[targetId];
+  if(!rec) return;
+  if(rec.staffId!==STATE.session.id){ toast(t('onlyOwner'),'err'); return; }
+  if(pendingRequestFor(target,targetId)){ toast(t('requestExists'),'err'); return; }
+  var body='<div class="note-lock">'+icon('alert','ic-s')+'<span>'+t('lockedHint')+'</span></div>'+
+    '<div class="field"><label>'+t('currentAmount')+'</label>'+
+      '<div class="mono" style="font-size:21px;font-weight:600">'+fmtMoney(rec.amount)+' '+t('sar')+'</div></div>'+
+    '<div class="field"><label>'+t('newAmount')+'</label><div class="amt-input">'+
+      '<input type="number" step="0.01" min="0" id="er-amt" value="'+rec.amount+'"><span class="cur">'+t('sar')+'</span></div></div>'+
+    '<div class="field"><label>'+t('editReason')+'</label>'+
+      '<textarea id="er-reason" required placeholder="'+t('editReasonPh')+'"></textarea></div>'+
+    '<button class="btn btn-primary btn-block" id="er-send">'+icon('check')+t('submitRequest')+'</button>';
+  openSheet(t('requestEdit'),body,function(overlay){
+    overlay.querySelector('#er-send').onclick=async function(){
+      var amt=Number(overlay.querySelector('#er-amt').value);
+      var why=(overlay.querySelector('#er-reason').value||'').trim();
+      if(!(amt>=0)||!why){ toast(t('errFill'),'err'); return; }
+      if(Number(amt)===Number(rec.amount)){ toast(t('errFill'),'err'); return; }
+      await Store.add('editRequests',{
+        target:target, targetId:targetId, field:'amount',
+        branchId:rec.branchId||null,
+        oldValue:Number(rec.amount), newValue:amt,
+        reason:why, status:'pending',
+        requestedBy:STATE.session.id, requestedByName:STATE.session.name,
+        requestedAt:new Date().toISOString()
+      });
+      closeSheet(); toast(t('requestSent'));
+    };
+  });
+}
+function reqCard(r){
+  var kind=t(EDITABLE[r.target]||'saleWord');
+  var pending=r.status==='pending';
+  var delta=Number(r.newValue)-Number(r.oldValue);
+  return '<div class="card section req-card '+r.status+'">'+
+    '<div class="ho-head">'+
+      '<div><div class="ho-branch">'+kind+' · '+branchName(r.branchId)+'</div>'+
+        '<div class="hint">'+esc(r.requestedByName)+' · '+fmtDate(r.requestedAt)+'</div></div>'+
+      '<div class="pill '+(pending?'pending':(r.status==='approved'?'confirmed':'gap'))+'">'+
+        (pending?t('reqPending'):(r.status==='approved'?t('reqApproved'):t('reqRejected')))+'</div>'+
+    '</div>'+
+    '<div class="req-amounts">'+
+      '<div><span>'+t('wasAmount')+'</span><b class="mono">'+fmtMoney(r.oldValue)+'</b></div>'+
+      '<div class="req-arrow">→</div>'+
+      '<div><span>'+t('newAmount')+'</span><b class="mono mint">'+fmtMoney(r.newValue)+'</b></div>'+
+      '<div><span>'+t('reconDiff')+'</span><b class="mono '+(delta<0?'rose':'')+'">'+(delta>0?'+':'')+fmtMoney(delta)+'</b></div>'+
+    '</div>'+
+    '<div class="req-reason">'+esc(r.reason)+'</div>'+
+    (r.decisionNote?'<div class="hint" style="margin-top:8px">'+esc(r.decidedByName)+': '+esc(r.decisionNote)+'</div>':'')+
+    (pending?'<div class="req-actions">'+
+      '<button class="btn btn-ghost btn-sm" data-action="reject-req" data-id="'+r.id+'">'+t('rejectReq')+'</button>'+
+      '<button class="btn btn-primary btn-sm" data-action="approve-req" data-id="'+r.id+'">'+icon('check')+t('approveReq')+'</button>'+
+    '</div>':'')+
+  '</div>';
+}
+function renderRequests(){
+  var all=requestsAll();
+  var pending=all.filter(function(r){ return r.status==='pending'; });
+  var past=all.filter(function(r){ return r.status!=='pending'; }).slice(0,20);
+  var html='<div class="kpi-grid stagger">'+
+    kpi(t('reqPending'), pending.length, pending.length?'gold':'', null, true)+
+  '</div>';
+  html+='<div class="section"><div class="section-title">'+t('reqPending')+'</div>'+
+    (pending.length?pending.map(reqCard).join('')
+      :'<div class="card"><div class="card-body">'+emptyState('expenses',t('noRequests'),t('noRequestsSub'))+'</div></div>')+
+  '</div>';
+  if(past.length) html+='<div class="section"><div class="section-title">'+t('reqHistory')+'</div>'+past.map(reqCard).join('')+'</div>';
+  return html;
+}
+async function decideRequest(id,approve,note){
+  var r=(STATE.data.editRequests||{})[id];
+  if(!r||r.status!=='pending') return;
+  var now=new Date().toISOString();
+  if(approve){
+    var rec=(STATE.data[r.target]||{})[r.targetId];
+    if(rec){
+      await Store.update(r.target, r.targetId, {
+        amount: Number(r.newValue),
+        originalAmount: (rec.originalAmount!=null?rec.originalAmount:Number(r.oldValue)),
+        correctedAt: now,
+        correctedBy: STATE.session.id,
+        correctedByName: STATE.session.name,
+        editRequestId: id
+      });
+    }
+  }
+  await Store.update('editRequests', id, {
+    status: approve?'approved':'rejected',
+    decidedBy: STATE.session.id, decidedByName: STATE.session.name,
+    decidedAt: now, decisionNote: note||''
+  });
+  toast(approve?t('reqApproved'):t('reqRejected'));
+}
 
 /* ===================== SALES SYSTEM RECONCILIATION =====================
    The till/POS system reports one total per branch per day. Comparing it with
@@ -1745,7 +1957,8 @@ function totalsStrip(){
     out= totalItem(t('pettyCash'), treasuryPettyCash(), 'accent')
        + totalItem(t('totAwaiting'), col.reduce(function(a,h){return a+Number(h.collectedAmount||0);},0), 'warn')
        + totalItem(t('networkConfirmed'), treasuryInflow())
-       + totalItem(t('totUnpaidBills'), unpaidBills, unpaidBills>0?'warn':'');
+       + totalItem(t('totUnpaidBills'), unpaidBills, unpaidBills>0?'warn':'')
+       + (function(){ var n=pendingRequestCount(); return n?totalItem(t('navRequests'), n, 'warn', true):''; })();
   } else if(r==='area'){
     var mine=branchesForArea(STATE.session.name); if(!mine.length) mine=allBranchIds();
     out= totalItem(t('myBranches'), mine.length, '', true)
@@ -1780,6 +1993,7 @@ function renderView(){
   else if(STATE.tab==='expenses') html=renderExpenses();
   else if(STATE.tab==='handover') html=renderHandover(role);
   else if(STATE.tab==='bills') html=renderBills();
+  else if(STATE.tab==='requests') html=renderRequests();
   else if(STATE.tab==='admin') html=renderAdmin();
   v.innerHTML=html;
   var tot=document.getElementById('totals');
@@ -1940,7 +2154,7 @@ function payKpi(type,bId){
   return '<div class="kpi"><div class="lbl">'+icon(icons[type])+' '+catLabel(PAY_TYPES,type)+'</div><div class="val"><span class="mono" data-count="'+v+'">0</span></div></div>';
 }
 function saleRow(s){
-  return '<div class="row"><div class="ricon">'+icon(s.type==='pos'?'bank':(s.type==='hospitality'?'user':'wallet'))+'</div><div class="rmain"><b>'+catLabel(PAY_TYPES,s.type)+'</b><div class="rmeta"><span class="chip '+s.type+'">'+catLabel(PAY_TYPES,s.type)+'</span><span>'+fmtDate(s.createdAt)+'</span>'+(s.note?'<span>· '+esc(s.note)+'</span>':'')+'</div></div><div class="ramt pos">+ '+fmtMoney(s.amount)+'</div></div>';
+  return '<div class="row"><div class="ricon">'+icon(s.type==='pos'?'bank':(s.type==='hospitality'?'user':'wallet'))+'</div><div class="rmain"><b>'+catLabel(PAY_TYPES,s.type)+'</b><div class="rmeta"><span class="chip '+s.type+'">'+catLabel(PAY_TYPES,s.type)+'</span><span>'+fmtDate(s.createdAt)+'</span>'+(s.note?'<span>· '+esc(s.note)+'</span>':'')+lockControls('sales',s)+'</div></div><div class="ramt pos">+ '+fmtMoney(s.amount)+'</div></div>';
 }
 
 /* ===================== EXPENSES TAB ===================== */
@@ -1971,7 +2185,7 @@ function renderExpenses(){
   return html;
 }
 function expenseRow(e){
-  return '<div class="row"><div class="ricon">'+(e.receiptUrl?'<img src="'+e.receiptUrl+'" style="width:38px;height:38px;border-radius:9px;object-fit:cover">':icon('expenses'))+'</div><div class="rmain"><b>'+catLabel(EXP_CATS,e.category)+'</b><div class="rmeta"><span>'+fmtDate(e.createdAt)+'</span>'+(e.note?'<span>· '+esc(e.note)+'</span>':'')+'</div></div><div class="ramt neg">− '+fmtMoney(e.amount)+'</div></div>';
+  return '<div class="row"><div class="ricon">'+(e.receiptUrl?'<img src="'+e.receiptUrl+'" style="width:38px;height:38px;border-radius:9px;object-fit:cover">':icon('expenses'))+'</div><div class="rmain"><b>'+catLabel(EXP_CATS,e.category)+'</b><div class="rmeta"><span>'+fmtDate(e.createdAt)+'</span>'+(e.note?'<span>· '+esc(e.note)+'</span>':'')+lockControls('expenses',e)+'</div></div><div class="ramt neg">− '+fmtMoney(e.amount)+'</div></div>';
 }
 
 /* ===================== HANDOVER TAB ===================== */
@@ -2664,6 +2878,15 @@ document.addEventListener('click', function(e){
       STATE.tab='bills'; renderShell();
     });
   }
+  else if(action==='open-edit-req'){ openEditRequestSheet(el.getAttribute('data-target'), el.getAttribute('data-id')); }
+  else if(action==='approve-req'){
+    var rid=el.getAttribute('data-id');
+    askConfirm(t('approveReq')+'?',function(){ decideRequest(rid,true,''); });
+  }
+  else if(action==='reject-req'){
+    var rid2=el.getAttribute('data-id');
+    askConfirm(t('rejectReq')+'?',function(){ decideRequest(rid2,false,''); });
+  }
   else if(action==='open-recon'){ openReconSheet(el.getAttribute('data-branch')||null); }
   else if(action==='open-bill'){ openBillSheet(); }
   else if(action==='open-pay-bill'){ openPayBillSheet(el.getAttribute('data-id')); }
@@ -2726,7 +2949,7 @@ async function boot(){
       if(document.getElementById('app') && !document.getElementById('app').hidden){
         if(!STATE.session){
           if(col==='staff' || col==='branches') renderShell();
-        } else if(STATE.tab && ['dashboard','sales','expenses','handover','bills','admin'].indexOf(STATE.tab)>-1 && document.getElementById('view')){
+        } else if(STATE.tab && ['dashboard','sales','expenses','handover','bills','requests','admin'].indexOf(STATE.tab)>-1 && document.getElementById('view')){
           renderView();
         }
         if(document.querySelector('.who-card')) updateTopbar();
