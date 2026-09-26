@@ -279,6 +279,40 @@ button{font-family:inherit}
 .kpi.gold .val{color:var(--gold);text-shadow:0 0 28px rgba(255,196,107,.45)}
 .kpi.gold .lbl{color:rgba(255,196,107,.75)}
 
+.locked-note{display:flex;align-items:center;gap:9px;padding:12px 14px;border-radius:13px;
+  font-size:12.5px;font-weight:700;line-height:1.6;
+  background:var(--rose-soft);color:var(--rose);border:1px solid rgba(255,107,107,.3)}
+
+/* ---------- bill alert + rows ---------- */
+.bill-alert{
+  display:flex;align-items:center;gap:14px;margin-bottom:20px;padding:16px 18px;
+  border-radius:var(--r);cursor:pointer;border:1px solid transparent;
+  transition:transform .2s,box-shadow .25s,border-color .2s;
+}
+.bill-alert:hover{transform:translateY(-2px)}
+.bill-alert.danger{background:linear-gradient(135deg,rgba(255,107,107,.16),rgba(255,107,107,.05));
+  border-color:rgba(255,107,107,.38);box-shadow:0 10px 36px -14px rgba(255,107,107,.65)}
+.bill-alert.warn{background:linear-gradient(135deg,rgba(255,196,107,.15),rgba(255,196,107,.04));
+  border-color:rgba(255,196,107,.35);box-shadow:0 10px 36px -14px rgba(255,196,107,.5)}
+.bill-alert .ba-ic{flex:none;width:40px;height:40px;border-radius:13px;display:flex;align-items:center;justify-content:center}
+.bill-alert.danger .ba-ic{background:rgba(255,107,107,.2);color:var(--rose);animation:alertPulse 1.9s ease-in-out infinite}
+.bill-alert.warn .ba-ic{background:rgba(255,196,107,.2);color:var(--gold)}
+@keyframes alertPulse{0%,100%{box-shadow:0 0 0 0 rgba(255,107,107,.45)}60%{box-shadow:0 0 0 12px rgba(255,107,107,0)}}
+.bill-alert .ba-body{flex:1;min-width:0}
+.bill-alert .ba-body b{display:block;font-size:14px}
+.bill-alert.danger .ba-body b{color:var(--rose)}
+.bill-alert.warn .ba-body b{color:var(--gold)}
+.bill-alert .ba-body span{font-size:12px;color:var(--ink-dim)}
+.bill-alert .ba-go{flex:none;font-size:11.5px;font-weight:800;color:var(--ink-dim);white-space:nowrap}
+.bill-right{display:flex;flex-direction:column;align-items:flex-end;gap:8px;flex:none}
+.check-row{display:flex;align-items:center;gap:11px;margin:16px 0;cursor:pointer;
+  font-size:13.5px;color:var(--ink-dim)}
+.check-row input{width:19px;height:19px;accent-color:var(--mint);flex:none}
+@media(max-width:620px){
+  .bill-alert .ba-go{display:none}
+  .bill-right .btn{padding:7px 11px;font-size:11.5px}
+}
+
 /* ---------- cards ---------- */
 .card{
   position:relative;border-radius:var(--r);border:1px solid var(--line);box-shadow:var(--shadow);
@@ -606,19 +640,19 @@ table.datatable tbody tr:hover{background:rgba(255,255,255,.025)}
   .flow-amt{font-size:11.5px}
 }
 .topbar-logo{display:none}
-.topbar-avatar{display:none}
-@media(max-width:860px){
-  /* The sidebar (which holds the account card) is hidden on phones, so the app
-     bar carries account access: role switching and logout live behind this. */
-  .topbar-avatar{
-    display:flex!important;align-items:center;justify-content:center;flex:none;
-    width:38px;height:38px;border-radius:13px;cursor:pointer;
-    font-family:var(--font-display);font-weight:800;font-size:14px;color:#04211A;
-    background:linear-gradient(135deg,var(--mint-2),var(--mint-deep));
-    border:none;box-shadow:0 6px 18px -6px rgba(0,230,162,.7);
-  }
-  .topbar-avatar:active{transform:scale(.93)}
+/* Account access lives in the app bar at EVERY size: on phones the sidebar is
+   hidden entirely, and on desktop the sidebar card sits at the bottom where it
+   is easy to miss. Role switching and logout are always one tap from here. */
+.topbar-avatar{
+  display:flex;align-items:center;justify-content:center;flex:none;
+  width:38px;height:38px;border-radius:13px;cursor:pointer;
+  font-family:var(--font-display);font-weight:800;font-size:14px;color:#04211A;
+  background:linear-gradient(135deg,var(--mint-2),var(--mint-deep));
+  border:none;box-shadow:0 6px 18px -6px rgba(0,230,162,.7);
+  transition:transform .15s,filter .2s;
 }
+.topbar-avatar:hover{filter:brightness(1.1)}
+.topbar-avatar:active{transform:scale(.93)}
 </style>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500;600&display=swap">
 
@@ -659,6 +693,15 @@ var PAY_TYPES = [
   {id:"pos", ar:"بطاقة (مدى/بنكي)", en:"Card (Mada/Bank)"},
   {id:"cash", ar:"نقدي", en:"Cash"},
   {id:"other", ar:"أخرى (STC Pay/تحويل)", en:"Other (STC Pay/Transfer)"}
+];
+var BILL_TYPES = [
+  {id:"electricity", ar:"كهرباء",      en:"Electricity", ic:"alert"},
+  {id:"internet",    ar:"إنترنت",      en:"Internet",    ic:"globe"},
+  {id:"water",       ar:"مياه",        en:"Water",       ic:"alert"},
+  {id:"rent",        ar:"إيجار",       en:"Rent",        ic:"building"},
+  {id:"phone",       ar:"هاتف",        en:"Phone",       ic:"globe"},
+  {id:"municipality",ar:"رسوم حكومية", en:"Gov / Municipality", ic:"bank"},
+  {id:"other",       ar:"أخرى",        en:"Other",       ic:"expenses"}
 ];
 var EXP_CATS = [
   {id:"maintenance", ar:"صيانة", en:"Maintenance"},
@@ -810,6 +853,46 @@ welcomeKicker:{ar:"إدارة النقدية",en:"CASH CONTROL"},
 welcomeBackName:{ar:"أهلاً بك",en:"Welcome back"},
 welcomeReady:{ar:"جاري تجهيز لوحتك...",en:"Preparing your dashboard..."},
 integration:{ar:"الربط والمزامنة",en:"Sync & Backup"},
+loading:{ar:"جارٍ التنفيذ...",en:"Working..."},
+navBills:{ar:"الفواتير",en:"Bills"},
+billsTitle:{ar:"الفواتير الشهرية",en:"Monthly Bills"},
+addBill:{ar:"إضافة فاتورة",en:"Add bill"},
+billType:{ar:"نوع الفاتورة",en:"Bill type"},
+provider:{ar:"الجهة / المزود",en:"Provider"},
+providerPh:{ar:"مثال: شركة الكهرباء السعودية",en:"e.g. Saudi Electricity Co."},
+accountNo:{ar:"رقم الحساب / العداد",en:"Account / meter no."},
+issueDate:{ar:"تاريخ الإصدار",en:"Issue date"},
+dueDate:{ar:"تاريخ الاستحقاق",en:"Due date"},
+markPaid:{ar:"تسجيل السداد",en:"Mark as paid"},
+paidAmount:{ar:"المبلغ المسدد",en:"Amount paid"},
+payMethod:{ar:"طريقة السداد",en:"Payment method"},
+payCash:{ar:"نقداً من الفرع",en:"Cash from branch"},
+payBank:{ar:"تحويل / بنكي",en:"Bank / transfer"},
+createNext:{ar:"إنشاء فاتورة الشهر القادم تلقائياً",en:"Create next month's bill automatically"},
+statusUnpaid:{ar:"غير مدفوعة",en:"Unpaid"},
+statusPaidBill:{ar:"مدفوعة",en:"Paid"},
+statusOverdue:{ar:"متأخرة",en:"Overdue"},
+dueInDays:{ar:"تستحق خلال {n} يوم",en:"Due in {n} days"},
+overdueByDays:{ar:"متأخرة {n} يوم",en:"{n} days overdue"},
+dueToday:{ar:"تستحق اليوم",en:"Due today"},
+dueTomorrow:{ar:"تستحق غداً",en:"Due tomorrow"},
+cutoffRisk:{ar:"خطر قطع الخدمة",en:"Cut-off risk"},
+noBills:{ar:"لا توجد فواتير مسجلة",en:"No bills recorded"},
+noBillsSub:{ar:"أضف فواتير الكهرباء والإنترنت لمتابعة مواعيد سدادها",en:"Add electricity and internet bills to track due dates"},
+billsOverdueTitle:{ar:"متأخرة — سدّدها فوراً",en:"Overdue — pay now"},
+billsDueSoonTitle:{ar:"تستحق قريباً",en:"Due soon"},
+billsUpcoming:{ar:"قادمة",en:"Upcoming"},
+billsPaid:{ar:"مدفوعة",en:"Paid"},
+billsAlertBody:{ar:"{n} فاتورة تحتاج انتباهك",en:"{n} bills need attention"},
+openBills:{ar:"عرض الفواتير",en:"View bills"},
+allClearBills:{ar:"لا توجد فواتير مستحقة",en:"No bills due"},
+paidOn:{ar:"سُددت في",en:"Paid on"},
+nextCreated:{ar:"تم إنشاء فاتورة الشهر القادم",en:"Next month's bill created"},
+billSaved:{ar:"تم حفظ الفاتورة",en:"Bill saved"},
+billPaid:{ar:"تم تسجيل السداد",en:"Payment recorded"},
+billOf:{ar:"فاتورة",en:"Bill"},
+cannotSelfApprove:{ar:"لا يمكنك اعتماد عملية قمت بها بنفسك — يجب أن يعتمدها شخص آخر",en:"You cannot approve a step you performed yourself — another person must approve it"},
+waitingOn:{ar:"بانتظار: {who}",en:"Waiting on: {who}"},
 sheetsTitle:{ar:"ربط جوجل شيت",en:"Google Sheets link"},
 sheetsHelp:{ar:"الصق رابط تطبيق الويب المنتهي بـ /exec. يُحفظ على هذا الجهاز فقط ولا يُرفع مع الكود.",en:"Paste the web app URL ending in /exec. It is stored on this device only and never committed with the code."},
 sheetsUrl:{ar:"رابط الربط (exec/)",en:"Endpoint URL (/exec)"},
@@ -921,7 +1004,7 @@ var Store = (function(){
   var mode='local', dbns=null, assetsns=null;
   var LS_KEY='wins_cash_local_v1';
   var API_KEY='wins_api_url';
-  var COLS=['cities','branches','staff','sales','expenses','handovers','editRequests'];
+  var COLS=['cities','branches','staff','sales','expenses','handovers','editRequests','bills'];
   var local=null;
   var listeners={}; // path -> [cb]
   var apiUrl=null, pollTimer=null, lastSig='', pendingPush=[], pushing=false;
@@ -994,7 +1077,7 @@ var Store = (function(){
   }
   function saveLocal(){ try{ localStorage.setItem(LS_KEY, encodeURIComponent(JSON.stringify(local))); }catch(e){} }
   function seedLocal(){
-    local={cities:{},branches:{},staff:{},sales:{},expenses:{},handovers:{}};
+    local={cities:{},branches:{},staff:{},sales:{},expenses:{},handovers:{},bills:{}};
     CITIES_SEED.forEach(function(c){ local.cities[c.id]={nameAr:c.nameAr,nameEn:c.nameEn,order:0}; });
     BRANCHES_SEED.forEach(function(b,i){ local.branches[b.id]={nameAr:b.nameAr,nameEn:b.nameEn,cityId:b.cityId,managerName:b.managerName||"",areaManagerName:b.areaManagerName||"",collectorName:b.collectorName||"",active:true,order:i}; });
     var now=Date.now();
@@ -1121,7 +1204,7 @@ var STATE={
   theme: localStorage.getItem('wins_theme')||'',
   session: null,
   tab:'dashboard',
-  data:{cities:{},branches:{},staff:{},sales:{},expenses:{},handovers:{}},
+  data:{cities:{},branches:{},staff:{},sales:{},expenses:{},handovers:{},bills:{}},
   loaded:{cities:false,branches:false,staff:false,sales:false,expenses:false,handovers:false}
 };
 try{ var s=localStorage.getItem('wins_session'); if(s) STATE.session=JSON.parse(decodeURIComponent(s)); }catch(e){}
@@ -1225,11 +1308,11 @@ function treasuryPettyCash(){
 
 /* ===================== RENDER: SHELL ===================== */
 var navByRole = {
-  admin:[['dashboard','dashboard','navDashboard'],['admin','admin','navAdmin']],
-  manager:[['dashboard','dashboard','navDashboard'],['sales','sales','navSales'],['expenses','expenses','navExpenses'],['handover','handover','navHandover']],
-  area:[['dashboard','dashboard','navDashboard']],
+  admin:[['dashboard','dashboard','navDashboard'],['bills','alert','navBills'],['admin','admin','navAdmin']],
+  manager:[['dashboard','dashboard','navDashboard'],['sales','sales','navSales'],['expenses','expenses','navExpenses'],['bills','alert','navBills'],['handover','handover','navHandover']],
+  area:[['dashboard','dashboard','navDashboard'],['bills','alert','navBills']],
   collector:[['dashboard','dashboard','navDashboard'],['handover','handover','navHandover']],
-  treasury:[['dashboard','dashboard','navDashboard'],['handover','handover','navHandover'],['expenses','expenses','navExpenses']]
+  treasury:[['dashboard','dashboard','navDashboard'],['handover','handover','navHandover'],['expenses','expenses','navExpenses'],['bills','alert','navBills']]
 };
 
 function renderShell(){
@@ -1276,7 +1359,7 @@ function currentIsDark(){
 function esc(s){ var d=document.createElement('div'); d.textContent=s==null?'':String(s); return d.innerHTML; }
 
 function updateTopbar(){
-  var titleMap={dashboard:'navDashboard',sales:'navSales',expenses:'navExpenses',handover:'navHandover',admin:'navAdmin'};
+  var titleMap={dashboard:'navDashboard',sales:'navSales',expenses:'navExpenses',handover:'navHandover',bills:'navBills',admin:'navAdmin'};
   var titleEl=document.getElementById('topbar-title');
   if(titleEl) titleEl.textContent=t(titleMap[STATE.tab]||'navDashboard');
   var subEl=document.getElementById('topbar-sub');
@@ -1306,6 +1389,7 @@ function renderView(){
   else if(STATE.tab==='sales') html=renderSales();
   else if(STATE.tab==='expenses') html=renderExpenses();
   else if(STATE.tab==='handover') html=renderHandover(role);
+  else if(STATE.tab==='bills') html=renderBills();
   else if(STATE.tab==='admin') html=renderAdmin();
   v.innerHTML=html;
   updateTopbar();
@@ -1319,11 +1403,11 @@ function renderDashboard(role){
   if(Store.mode()==='local'||Store.mode()==='sheets-offline'){
     var banner='<div class="card fade-in" style="padding:11px 16px;margin-bottom:16px;display:flex;gap:9px;align-items:center;border-color:var(--gold);background:var(--gold-soft);color:var(--gold);font-size:12px;font-weight:700;">'+icon('alert','ic-s')+'<span>'+t('localModeBanner')+'</span></div>';
   } else banner='';
-  if(role==='manager') return banner+dashManager();
+  if(role==='manager') return banner+billAlertCard()+dashManager();
   if(role==='area') return banner+dashArea();
   if(role==='collector') return banner+dashCollector();
-  if(role==='treasury') return banner+dashTreasury();
-  return banner+dashAdmin();
+  if(role==='treasury') return banner+billAlertCard()+dashTreasury();
+  return banner+billAlertCard()+dashAdmin();
 }
 
 function dashManager(){
@@ -1543,8 +1627,22 @@ function handoverCard(role,h){
   var gap = (h.status!=='pending' && Number(h.collectedAmount)!==Number(h.declaredAmount));
   var diff = Number(h.collectedAmount||0)-Number(h.declaredAmount||0);
   var actions='';
-  if(role==='collector' && h.status==='pending') actions='<button class="btn btn-primary btn-block" data-action="open-collect" data-id="'+h.id+'">'+icon('check')+t('collectBtn')+'</button>';
-  if(role==='treasury' && h.status==='collected') actions='<button class="btn btn-primary btn-block" data-action="open-confirm-receipt" data-id="'+h.id+'">'+icon('check')+t('confirmReceiptBtn')+'</button>';
+  /* Segregation of duties: nobody may approve a stage of a handover they
+     already acted on. Several people hold more than one role (Sobhy is admin,
+     treasury and a branch manager), so without this a person could declare
+     cash and then confirm its receipt themselves — which defeats the chain. */
+  var selfDeclared = h.managerId===STATE.session.id;
+  var selfCollected = h.collectorId===STATE.session.id;
+  if(role==='collector' && h.status==='pending'){
+    actions = selfDeclared
+      ? '<div class="locked-note">'+icon('alert','ic-s')+' '+t('cannotSelfApprove')+'</div>'
+      : '<button class="btn btn-primary btn-block" data-action="open-collect" data-id="'+h.id+'">'+icon('check')+t('collectBtn')+'</button>';
+  }
+  if(role==='treasury' && h.status==='collected'){
+    actions = (selfDeclared||selfCollected)
+      ? '<div class="locked-note">'+icon('alert','ic-s')+' '+t('cannotSelfApprove')+'</div>'
+      : '<button class="btn btn-primary btn-block" data-action="open-confirm-receipt" data-id="'+h.id+'">'+icon('check')+t('confirmReceiptBtn')+'</button>';
+  }
   return '<div class="card section ho-card">'+
     '<div class="ho-head">'+
       '<div><div class="ho-branch">'+branchName(h.branchId)+'</div><div class="hint">'+cityName((STATE.data.branches[h.branchId]||{}).cityId)+' · '+fmtDate(h.createdAt)+'</div></div>'+
@@ -1614,6 +1712,210 @@ function adminIntegration(){
         (url?'<button class="btn btn-danger btn-sm" data-action="api-clear">'+t('disconnect')+'</button>':'')+
       '</div>'+
     '</div></div>';
+}
+
+
+/* ===================== BILLS (recurring utilities) =====================
+   Tracks anything that arrives as a monthly invoice — electricity, internet,
+   water, rent — so a due date is never missed and a service is never cut. */
+function dayStart(d){ var x=new Date(d); x.setHours(0,0,0,0); return x; }
+function daysUntil(dateStr){
+  if(!dateStr) return null;
+  return Math.round((dayStart(dateStr)-dayStart(new Date()))/86400000);
+}
+function fmtDay(iso){
+  try{ return new Date(iso).toLocaleDateString(STATE.lang==='ar'?'ar-SA-u-nu-latn':'en-GB',
+        {day:'2-digit',month:'short',year:'numeric'}); }catch(e){ return iso||''; }
+}
+function billUrgency(b){
+  if(b.status==='paid') return {key:'paid', cls:'confirmed', rank:4};
+  var d=daysUntil(b.dueDate);
+  if(d===null) return {key:'upcoming', cls:'pending', rank:3};
+  if(d<0)  return {key:'overdue',  cls:'gap',       rank:0, days:Math.abs(d)};
+  if(d<=3) return {key:'critical', cls:'gap',       rank:1, days:d};
+  if(d<=7) return {key:'soon',     cls:'pending',   rank:2, days:d};
+  return {key:'upcoming', cls:'collected', rank:3, days:d};
+}
+function billDueLabel(b){
+  if(b.status==='paid') return t('paidOn')+' '+fmtDay(b.paidAt||b.dueDate);
+  var d=daysUntil(b.dueDate);
+  if(d===null) return '';
+  if(d<0)   return t('overdueByDays').replace('{n}', Math.abs(d));
+  if(d===0) return t('dueToday');
+  if(d===1) return t('dueTomorrow');
+  return t('dueInDays').replace('{n}', d);
+}
+function catIcon(list,id){
+  for(var i=0;i<list.length;i++){ if(list[i].id===id) return list[i].ic||'expenses'; }
+  return 'expenses';
+}
+/* Branch managers see their own branch; treasury, admin and area managers
+   see every branch they are responsible for. */
+function billsScope(){
+  var r=STATE.session.role;
+  if(r==='manager') return [STATE.session.branchId];
+  if(r==='area'){ var mine=branchesForArea(STATE.session.name); return mine.length?mine:allBranchIds(); }
+  return allBranchIds();
+}
+function billsFor(){
+  var scope=billsScope();
+  return Object.keys(STATE.data.bills||{})
+    .map(function(id){ return Object.assign({id:id}, STATE.data.bills[id]); })
+    .filter(function(b){ return scope.indexOf(b.branchId)>-1; })
+    .sort(function(a,b){
+      var ua=billUrgency(a), ub=billUrgency(b);
+      if(ua.rank!==ub.rank) return ua.rank-ub.rank;
+      return new Date(a.dueDate||0)-new Date(b.dueDate||0);
+    });
+}
+function billsNeedingAttention(){
+  return billsFor().filter(function(b){
+    var k=billUrgency(b).key; return k==='overdue'||k==='critical'||k==='soon';
+  });
+}
+function billAlertCard(){
+  var urgent=billsNeedingAttention();
+  if(!urgent.length) return '';
+  var worst=billUrgency(urgent[0]);
+  var cls=(worst.key==='overdue'||worst.key==='critical')?'danger':'warn';
+  return '<div class="bill-alert '+cls+' fade-in" data-action="nav" data-tab="bills">'+
+    '<div class="ba-ic">'+icon('alert','ic-s')+'</div>'+
+    '<div class="ba-body"><b>'+(worst.key==='overdue'?t('cutoffRisk'):t('billsDueSoonTitle'))+'</b>'+
+      '<span>'+t('billsAlertBody').replace('{n}',urgent.length)+'</span></div>'+
+    '<div class="ba-go">'+t('openBills')+'</div></div>';
+}
+function billRow(b){
+  var u=billUrgency(b);
+  var canPay=b.status!=='paid' && ['manager','treasury','admin'].indexOf(STATE.session.role)>-1;
+  return '<div class="row bill-row">'+
+    '<div class="ricon">'+icon(catIcon(BILL_TYPES,b.type),'')+'</div>'+
+    '<div class="rmain"><b>'+catLabel(BILL_TYPES,b.type)+(b.provider?' · '+esc(b.provider):'')+'</b>'+
+      '<div class="rmeta"><span class="pill '+u.cls+'">'+billDueLabel(b)+'</span>'+
+      '<span>'+branchName(b.branchId)+'</span>'+
+      (b.accountNo?'<span>· '+esc(b.accountNo)+'</span>':'')+'</div></div>'+
+    '<div class="bill-right">'+
+      '<div class="ramt '+(b.status==='paid'?'pos':'neg')+'">'+fmtMoney(b.status==='paid'?(b.paidAmount||b.amount):b.amount)+'</div>'+
+      (canPay?'<button class="btn btn-primary btn-sm" data-action="open-pay-bill" data-id="'+b.id+'">'+t('markPaid')+'</button>':'')+
+    '</div></div>';
+}
+function renderBills(){
+  var all=billsFor();
+  var overdue=all.filter(function(b){ return billUrgency(b).key==='overdue'; });
+  var urgent=billsNeedingAttention();
+  var unpaidTotal=all.filter(function(b){ return b.status!=='paid'; })
+                     .reduce(function(a,b){ return a+Number(b.amount||0); },0);
+  var html='<div class="kpi-grid stagger">'+
+    kpi(t('billsOverdueTitle'), overdue.length, 'gold', null, true)+
+    kpi(t('billsDueSoonTitle'), urgent.length, '', null, true)+
+    kpi(t('statusUnpaid'), unpaidTotal, 'accent', t('sar'))+
+  '</div>';
+  var canAdd=['manager','treasury','admin'].indexOf(STATE.session.role)>-1;
+  html+='<div class="section"><div class="card"><div class="card-head"><h3>'+t('billsTitle')+'</h3>'+
+    (canAdd?'<button class="btn btn-primary btn-sm" data-action="open-bill">'+icon('plus')+t('addBill')+'</button>':'')+
+    '</div><div class="card-body">';
+  if(!all.length){
+    html+=emptyState('expenses',t('noBills'),t('noBillsSub'));
+  } else {
+    var groups=[
+      [t('billsOverdueTitle'), function(k){ return k==='overdue'; }],
+      [t('billsDueSoonTitle'), function(k){ return k==='critical'||k==='soon'; }],
+      [t('billsUpcoming'),     function(k){ return k==='upcoming'; }],
+      [t('billsPaid'),         function(k){ return k==='paid'; }]
+    ];
+    groups.forEach(function(g){
+      var rows=all.filter(function(b){ return g[1](billUrgency(b).key); });
+      if(!rows.length) return;
+      html+='<div class="section-title" style="margin:16px 0 2px">'+g[0]+' ('+rows.length+')</div>'+
+        rows.map(billRow).join('');
+    });
+  }
+  html+='</div></div></div>';
+  if(canAdd) html+='<button class="fab" data-action="open-bill">'+icon('plus')+'</button>';
+  return html;
+}
+function openBillSheet(){
+  var scope=billsScope();
+  var branchOpts=scope.map(function(id){ return '<option value="'+id+'">'+esc(branchName(id))+'</option>'; }).join('');
+  var today=new Date().toISOString().slice(0,10);
+  var nd=new Date(); nd.setDate(nd.getDate()+30);
+  var body='<form id="bill-form">'+
+    (scope.length>1?'<div class="field"><label>'+t('chooseBranch')+'</label><select name="branchId">'+branchOpts+'</select></div>':'')+
+    '<div class="field"><label>'+t('billType')+'</label><select name="type">'+
+      BILL_TYPES.map(function(b){ return '<option value="'+b.id+'">'+catLabel(BILL_TYPES,b.id)+'</option>'; }).join('')+'</select></div>'+
+    '<div class="field"><label>'+t('provider')+'</label><input type="text" name="provider" placeholder="'+t('providerPh')+'"></div>'+
+    '<div class="field"><label>'+t('accountNo')+'</label><input type="text" name="accountNo" dir="ltr" placeholder="'+t('optional')+'"></div>'+
+    '<div class="field"><label>'+t('amount')+'</label><div class="amt-input"><input type="number" step="0.01" min="0" name="amount" required placeholder="0"><span class="cur">'+t('sar')+'</span></div></div>'+
+    '<div class="grid2">'+
+      '<div class="field"><label>'+t('issueDate')+'</label><input type="date" name="issueDate" value="'+today+'"></div>'+
+      '<div class="field"><label>'+t('dueDate')+'</label><input type="date" name="dueDate" required value="'+nd.toISOString().slice(0,10)+'"></div>'+
+    '</div>'+
+    '<div class="field"><label>'+t('note')+'</label><textarea name="note" placeholder="'+t('notePh')+'"></textarea></div>'+
+    '<button type="submit" class="btn btn-primary btn-block">'+icon('check')+t('save')+'</button></form>';
+  openSheet(t('addBill'),body,function(overlay){
+    overlay.querySelector('#bill-form').onsubmit=async function(ev){
+      ev.preventDefault();
+      var fd=new FormData(ev.target);
+      var amount=Number(fd.get('amount'));
+      if(!amount||amount<=0||!fd.get('dueDate')){ toast(t('errFill'),'err'); return; }
+      await Store.add('bills',{
+        branchId: fd.get('branchId')||scope[0],
+        type: fd.get('type'),
+        provider:(fd.get('provider')||'').trim(),
+        accountNo:(fd.get('accountNo')||'').trim(),
+        amount: amount,
+        issueDate: fd.get('issueDate')||null,
+        dueDate: fd.get('dueDate'),
+        note:(fd.get('note')||'').trim(),
+        status:'unpaid',
+        createdBy:STATE.session.id, createdByName:STATE.session.name,
+        createdAt:new Date().toISOString()
+      });
+      closeSheet(); toast(t('billSaved'));
+    };
+  });
+}
+function openPayBillSheet(id){
+  var b=STATE.data.bills[id]; if(!b) return;
+  var body='<div class="field"><label>'+catLabel(BILL_TYPES,b.type)+' · '+branchName(b.branchId)+'</label>'+
+      '<div class="hint">'+t('dueDate')+': '+fmtDay(b.dueDate)+' — '+billDueLabel(b)+'</div></div>'+
+    '<div class="field"><label>'+t('paidAmount')+'</label><div class="amt-input"><input type="number" step="0.01" min="0" id="pay-amt" value="'+(b.amount||0)+'"><span class="cur">'+t('sar')+'</span></div></div>'+
+    '<div class="field"><label>'+t('payMethod')+'</label><div class="seg" id="pay-seg">'+
+      '<div class="seg-opt sel" data-val="cash">'+t('payCash')+'</div>'+
+      '<div class="seg-opt" data-val="bank">'+t('payBank')+'</div></div></div>'+
+    '<label class="check-row"><input type="checkbox" id="pay-next" checked> <span>'+t('createNext')+'</span></label>'+
+    '<button class="btn btn-primary btn-block" id="pay-submit">'+icon('check')+t('markPaid')+'</button>';
+  openSheet(t('markPaid'),body,function(overlay){
+    var method='cash';
+    overlay.querySelectorAll('#pay-seg .seg-opt').forEach(function(opt){
+      opt.onclick=function(){
+        overlay.querySelectorAll('#pay-seg .seg-opt').forEach(function(o){ o.classList.remove('sel'); });
+        opt.classList.add('sel'); method=opt.getAttribute('data-val');
+      };
+    });
+    overlay.querySelector('#pay-submit').onclick=async function(){
+      var amt=Number(overlay.querySelector('#pay-amt').value);
+      if(!amt||amt<=0){ toast(t('errFill'),'err'); return; }
+      var now=new Date().toISOString();
+      await Store.update('bills',id,{status:'paid',paidAmount:amt,paidMethod:method,
+        paidAt:now,paidBy:STATE.session.id,paidByName:STATE.session.name});
+      /* Paying in cash leaves the branch drawer, so it must also land as an
+         expense. A bank transfer never touches branch cash. */
+      if(method==='cash'){
+        await Store.add('expenses',{branchId:b.branchId,scope:'branch',category:'utilities',
+          amount:amt,note:t('billOf')+' · '+catLabel(BILL_TYPES,b.type)+(b.provider?' · '+b.provider:''),
+          staffId:STATE.session.id,staffName:STATE.session.name,
+          createdAt:now,dateKey:now.slice(0,10),billId:id});
+      }
+      if(overlay.querySelector('#pay-next').checked){
+        var nxt=new Date(b.dueDate); nxt.setMonth(nxt.getMonth()+1);
+        await Store.add('bills',{branchId:b.branchId,type:b.type,provider:b.provider||'',
+          accountNo:b.accountNo||'',amount:b.amount||amt,issueDate:null,
+          dueDate:nxt.toISOString().slice(0,10),note:'',status:'unpaid',
+          createdBy:STATE.session.id,createdByName:STATE.session.name,createdAt:now});
+      }
+      closeSheet(); toast(t('billPaid'));
+    };
+  });
 }
 
 /* ===================== SHEET / MODAL SYSTEM ===================== */
@@ -1947,6 +2249,8 @@ document.addEventListener('click', function(e){
   }
   else if(action==='open-sale'){ openSaleSheet(); }
   else if(action==='open-expense'){ openExpenseSheet(); }
+  else if(action==='open-bill'){ openBillSheet(); }
+  else if(action==='open-pay-bill'){ openPayBillSheet(el.getAttribute('data-id')); }
   else if(action==='open-handover'){ if(!el.hasAttribute('disabled')) openHandoverSheet(); }
   else if(action==='open-collect'){ openCollectSheet(el.getAttribute('data-id')); }
   else if(action==='open-confirm-receipt'){ openConfirmReceiptSheet(el.getAttribute('data-id')); }
@@ -1999,14 +2303,14 @@ function installAppIcon(){
 async function boot(){
   installAppIcon();
   await Store.init();
-  ['cities','branches','staff','sales','expenses','handovers'].forEach(function(col){
+  ['cities','branches','staff','sales','expenses','handovers','bills'].forEach(function(col){
     Store.onCollection(col, function(data){
       STATE.data[col]=data;
       STATE.loaded[col]=true;
       if(document.getElementById('app') && !document.getElementById('app').hidden){
         if(!STATE.session){
           if(col==='staff' || col==='branches') renderShell();
-        } else if(STATE.tab && ['dashboard','sales','expenses','handover','admin'].indexOf(STATE.tab)>-1 && document.getElementById('view')){
+        } else if(STATE.tab && ['dashboard','sales','expenses','handover','bills','admin'].indexOf(STATE.tab)>-1 && document.getElementById('view')){
           renderView();
         }
         if(document.querySelector('.who-card')) updateTopbar();

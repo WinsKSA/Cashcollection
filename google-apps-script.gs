@@ -59,8 +59,17 @@ function json_(o) {
 
 function doGet(e) {
   try {
+    // Read every tab in the spreadsheet, not a fixed list, so new collections
+    // added by the app sync without ever redeploying this script again.
+    var names = {}, i;
+    for (i = 0; i < COLLECTIONS.length; i++) names[COLLECTIONS[i]] = true;
+    var sheets = SpreadsheetApp.getActiveSpreadsheet().getSheets();
+    for (i = 0; i < sheets.length; i++) {
+      var h = sheets[i].getRange(1, 1).getValue();
+      if (String(h).trim() === 'id') names[sheets[i].getName()] = true;
+    }
     var all = {};
-    for (var i = 0; i < COLLECTIONS.length; i++) all[COLLECTIONS[i]] = readAll_(COLLECTIONS[i]);
+    for (var n in names) all[n] = readAll_(n);
     return json_({ ok: true, data: all, at: new Date().toISOString() });
   } catch (err) {
     return json_({ ok: false, error: String(err) });
