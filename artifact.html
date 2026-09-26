@@ -371,7 +371,7 @@ button{font-family:inherit}
 .scrim{position:absolute;inset:0;background:rgba(3,4,7,.72);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);opacity:0;transition:opacity .3s;pointer-events:auto}
 .scrim.show{opacity:1}
 .sheet{
-  position:absolute;inset-inline:0;bottom:0;max-height:88vh;overflow-y:auto;pointer-events:auto;
+  position:absolute;inset-inline:0;bottom:0;max-height:88dvh;overflow-y:auto;pointer-events:auto;
   border-radius:26px 26px 0 0;border-top:1px solid var(--line-bright);
   background:linear-gradient(180deg,#141722,#0B0D13);
   box-shadow:var(--shadow-lg);
@@ -380,12 +380,18 @@ button{font-family:inherit}
 }
 .sheet.show{transform:none}
 .sheet-handle{width:40px;height:4px;margin:12px auto;border-radius:99px;background:var(--line-bright)}
+/* Keep the confirm action reachable no matter how long the form gets. */
+.sheet form>.btn-block:last-child,
+.sheet .sheet-body>.btn-block:last-child{
+  position:sticky;bottom:0;z-index:3;margin-top:6px;
+  box-shadow:0 -14px 22px -6px #0B0D13, var(--glow-mint);
+}
 .sheet-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:2px 22px 14px}
 .sheet-head h3{font-size:17px;font-weight:800}
 .sheet-body{padding:4px 22px 26px}
 @media(min-width:640px){
   .sheet{inset-inline:auto;inset-inline-end:calc(50% - 235px);top:50%;bottom:auto;width:470px;
-    border-radius:24px;border:1px solid var(--line-bright);max-height:86vh;
+    border-radius:24px;border:1px solid var(--line-bright);max-height:86dvh;
     opacity:0;transform:translateY(-46%) scale(.95)}
   .sheet.show{opacity:1;transform:translateY(-50%) scale(1)}
 }
@@ -415,7 +421,7 @@ button{font-family:inherit}
 .confirm-actions .btn{flex:1}
 
 /* ---------- login ---------- */
-.login-wrap{position:relative;z-index:1;min-height:100vh;width:100%;display:flex;align-items:center;justify-content:center;padding:28px 20px}
+.login-wrap{position:relative;z-index:1;min-height:100dvh;width:100%;display:flex;align-items:center;justify-content:center;padding:28px 20px}
 .login-card{
   width:100%;max-width:440px;padding:38px 30px 32px;border-radius:28px;
   background:linear-gradient(165deg,rgba(255,255,255,.075),rgba(255,255,255,.022));
@@ -530,6 +536,19 @@ table.datatable tbody tr:hover{background:rgba(255,255,255,.025)}
   .flow-amt{font-size:11.5px}
 }
 .topbar-logo{display:none}
+.topbar-avatar{display:none}
+@media(max-width:860px){
+  /* The sidebar (which holds the account card) is hidden on phones, so the app
+     bar carries account access: role switching and logout live behind this. */
+  .topbar-avatar{
+    display:flex!important;align-items:center;justify-content:center;flex:none;
+    width:38px;height:38px;border-radius:13px;cursor:pointer;
+    font-family:var(--font-display);font-weight:800;font-size:14px;color:#04211A;
+    background:linear-gradient(135deg,var(--mint-2),var(--mint-deep));
+    border:none;box-shadow:0 6px 18px -6px rgba(0,230,162,.7);
+  }
+  .topbar-avatar:active{transform:scale(.93)}
+}
 </style>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500;600&display=swap">
 
@@ -634,7 +653,10 @@ roleManager:{ar:"مدير فرع",en:"Branch Manager"},
 roleArea:{ar:"مدير منطقة",en:"Area Manager"},
 roleCollector:{ar:"محصّل",en:"Collector"},
 roleTreasury:{ar:"الخزينة",en:"Treasury"},
-notYou:{ar:"تبديل المستخدم",en:"Switch user"},
+notYou:{ar:"تسجيل الخروج",en:"Log out"},
+switchUser:{ar:"تبديل المستخدم",en:"Switch user"},
+logoutConfirm:{ar:"سيتم تسجيل خروجك من هذا الجهاز وستحتاج إلى رقمك السري للدخول مرة أخرى. هل تريد المتابعة؟",en:"You will be signed out on this device and will need your PIN to sign back in. Continue?"},
+loggedOut:{ar:"تم تسجيل الخروج",en:"Signed out"},
 navDashboard:{ar:"الرئيسية",en:"Dashboard"},
 navSales:{ar:"المبيعات",en:"Sales"},
 navExpenses:{ar:"المصروفات",en:"Expenses"},
@@ -1015,6 +1037,7 @@ function renderShell(){
   html+='<div id="main">'+
     '<div class="topbar">'+logoMark('topbar-logo')+'<div style="flex:1;min-width:0"><h2 id="topbar-title"></h2><div class="sub" id="topbar-sub"></div></div>'+
       '<div class="pulse" id="pulse-box"><i></i><span id="pulse-text"></span></div>'+
+      '<button class="topbar-avatar" data-action="open-account" aria-label="'+t('myAccount')+'">'+initials(STATE.session.name)+'</button>'+
     '</div>'+
     '<div id="view"></div>'+
   '</div>';
@@ -1360,11 +1383,13 @@ function openSheet(title, bodyHtml, onMount){
   var overlay=document.getElementById('overlay');
   overlay.innerHTML='<div class="scrim" data-action="close-sheet"></div><div class="sheet"><div class="sheet-handle"></div><div class="sheet-head"><h3>'+title+'</h3><button class="icon-btn" data-action="close-sheet">'+icon('x')+'</button></div><div class="sheet-body">'+bodyHtml+'</div></div>';
   overlay.style.pointerEvents='auto';
-  requestAnimationFrame(function(){
-    var sc=overlay.querySelector('.scrim'), sh=overlay.querySelector('.sheet');
-    if(sc) sc.classList.add('show');
-    if(sh) sh.classList.add('show');
-  });
+  // Reveal synchronously after forcing a reflow. Never gate this on
+  // requestAnimationFrame: browsers throttle it, and a sheet that misses the
+  // frame stays parked off-screen with its submit button under the nav bar.
+  var sc=overlay.querySelector('.scrim'), sh=overlay.querySelector('.sheet');
+  if(sh) void sh.offsetWidth;
+  if(sc) sc.classList.add('show');
+  if(sh) sh.classList.add('show');
   if(onMount) onMount(overlay);
 }
 function closeSheet(){
@@ -1378,8 +1403,13 @@ function closeSheet(){
 function askConfirm(msg,onYes){
   var overlay=document.getElementById('overlay');
   overlay.style.pointerEvents='auto';
-  overlay.innerHTML+='<div class="confirm-box"><div class="confirm-card"><h4>'+t('confirmTitle')+'</h4><p>'+msg+'</p><div class="confirm-actions"><button class="btn btn-ghost" data-action="dismiss-confirm">'+t('cancel')+'</button><button class="btn btn-primary" id="confirm-yes">'+t('yes')+'</button></div></div></div>';
-  document.getElementById('confirm-yes').onclick=function(){ dismissConfirmBox(); onYes(); };
+  // Append a node rather than rewriting overlay.innerHTML: re-parsing the
+  // overlay would drop an open sheet's handlers and typed-in values.
+  var box=document.createElement('div');
+  box.className='confirm-box';
+  box.innerHTML='<div class="confirm-card"><h4>'+t('confirmTitle')+'</h4><p>'+msg+'</p><div class="confirm-actions"><button class="btn btn-ghost" data-action="dismiss-confirm">'+t('cancel')+'</button><button class="btn btn-primary" data-confirm-yes>'+t('yes')+'</button></div></div>';
+  overlay.appendChild(box);
+  box.querySelector('[data-confirm-yes]').onclick=function(){ dismissConfirmBox(); onYes(); };
 }
 function dismissConfirmBox(){
   var box=document.querySelector('.confirm-box'); if(box) box.remove();
@@ -1647,7 +1677,13 @@ document.addEventListener('click', function(e){
     localStorage.setItem('wins_session',encodeURIComponent(JSON.stringify(STATE.session)));
     STATE.tab='dashboard'; closeSheet(); renderShell(); toast(t('roleSwitched'));
   }
-  else if(action==='logout'){ localStorage.removeItem('wins_session'); STATE.session=null; closeSheet(); renderShell(); }
+  else if(action==='logout'){
+    askConfirm(t('logoutConfirm'),function(){
+      try{ localStorage.removeItem('wins_session'); }catch(e){}
+      STATE.session=null; STATE.tab='dashboard'; loginMode='existing';
+      closeSheet(); renderShell(); toast(t('loggedOut'));
+    });
+  }
   else if(action==='open-sale'){ openSaleSheet(); }
   else if(action==='open-expense'){ openExpenseSheet(); }
   else if(action==='open-handover'){ if(!el.hasAttribute('disabled')) openHandoverSheet(); }
