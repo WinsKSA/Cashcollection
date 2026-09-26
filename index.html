@@ -283,6 +283,34 @@ button{font-family:inherit}
   font-size:12.5px;font-weight:700;line-height:1.6;
   background:var(--rose-soft);color:var(--rose);border:1px solid rgba(255,107,107,.3)}
 
+/* ---------- always-on totals strip ---------- */
+.totals-strip{
+  position:sticky;top:calc(66px + env(safe-area-inset-top,0px));z-index:18;
+  display:flex;gap:10px;padding:12px 30px;overflow-x:auto;-webkit-overflow-scrolling:touch;
+  background:rgba(6,7,11,.72);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+  border-bottom:1px solid var(--line);scrollbar-width:none;
+}
+.totals-strip::-webkit-scrollbar{display:none}
+.tot{
+  flex:none;min-width:124px;padding:10px 14px;border-radius:13px;
+  border:1px solid var(--line);background:linear-gradient(160deg,rgba(255,255,255,.055),rgba(255,255,255,.015));
+}
+.tot span{display:block;font-size:9.5px;font-weight:800;letter-spacing:.11em;
+  text-transform:uppercase;color:var(--ink-faint);white-space:nowrap}
+.tot b{display:block;margin-top:5px;font-size:16px;font-weight:600;white-space:nowrap}
+.tot b i{font-style:normal;font-size:10px;color:var(--ink-faint);font-family:var(--font-body)}
+.tot.accent{border-color:rgba(0,230,162,.3);background:linear-gradient(160deg,rgba(0,230,162,.12),rgba(0,230,162,.02))}
+.tot.accent b{color:var(--mint)}
+.tot.warn{border-color:rgba(255,196,107,.3);background:linear-gradient(160deg,rgba(255,196,107,.1),rgba(255,196,107,.02))}
+.tot.warn b{color:var(--gold)}
+.tot.violet{border-color:rgba(139,123,255,.3);background:linear-gradient(160deg,rgba(139,123,255,.1),rgba(139,123,255,.02))}
+.tot.violet b{color:var(--violet)}
+@media(max-width:860px){
+  .totals-strip{padding:10px 16px;gap:8px;top:calc(58px + env(safe-area-inset-top,0px))}
+  .tot{min-width:112px;padding:9px 12px}
+  .tot b{font-size:15px}
+}
+
 /* ---------- bill alert + rows ---------- */
 .bill-alert{
   display:flex;align-items:center;gap:14px;margin-bottom:20px;padding:16px 18px;
@@ -372,6 +400,7 @@ button{font-family:inherit}
 .chip.pos{background:rgba(139,123,255,.13);color:var(--violet);border-color:rgba(139,123,255,.25)}
 .chip.cash{background:var(--mint-soft);color:var(--mint);border-color:rgba(0,230,162,.25)}
 .chip.other{background:var(--gold-soft);color:var(--gold);border-color:rgba(255,196,107,.25)}
+.chip.hospitality{background:var(--violet-soft);color:var(--violet);border-color:rgba(139,123,255,.3)}
 
 /* ---------- rows ---------- */
 .row{display:flex;align-items:center;gap:14px;padding:14px 0;border-bottom:1px solid var(--line);transition:background .18s}
@@ -692,8 +721,13 @@ var BRANCHES_SEED = [
 var PAY_TYPES = [
   {id:"pos", ar:"بطاقة (مدى/بنكي)", en:"Card (Mada/Bank)"},
   {id:"cash", ar:"نقدي", en:"Cash"},
-  {id:"other", ar:"أخرى (STC Pay/تحويل)", en:"Other (STC Pay/Transfer)"}
+  {id:"other", ar:"أخرى (STC Pay/تحويل)", en:"Other (STC Pay/Transfer)"},
+  {id:"hospitality", ar:"ضيافة", en:"Hospitality"}
 ];
+/* Types that actually bring money in. ضيافة is tracked so the items leaving
+   the branch are recorded, but nothing is collected for it, so it must never
+   count as revenue nor as cash expected in the drawer. */
+var REVENUE_TYPES = ["pos","cash","other"];
 var BILL_TYPES = [
   {id:"electricity", ar:"كهرباء",      en:"Electricity", ic:"alert"},
   {id:"internet",    ar:"إنترنت",      en:"Internet",    ic:"globe"},
@@ -709,6 +743,7 @@ var EXP_CATS = [
   {id:"transport", ar:"نقل", en:"Transport"},
   {id:"utilities", ar:"مرافق", en:"Utilities"},
   {id:"staff", ar:"موظفين", en:"Staff"},
+  {id:"hospitality", ar:"ضيافة", en:"Hospitality"},
   {id:"other", ar:"أخرى", en:"Other"}
 ];
 var ROLES = ["admin","manager","area","collector","treasury"];
@@ -891,6 +926,13 @@ nextCreated:{ar:"تم إنشاء فاتورة الشهر القادم",en:"Next 
 billSaved:{ar:"تم حفظ الفاتورة",en:"Bill saved"},
 billPaid:{ar:"تم تسجيل السداد",en:"Payment recorded"},
 billOf:{ar:"فاتورة",en:"Bill"},
+totHospitality:{ar:"ضيافة اليوم",en:"Hospitality today"},
+totRevenue:{ar:"إيراد اليوم",en:"Revenue today"},
+totNetwork:{ar:"إيراد الشبكة",en:"Network revenue"},
+totBranches:{ar:"الفروع",en:"Branches"},
+totToCollect:{ar:"مطلوب تحصيله",en:"To collect"},
+totAwaiting:{ar:"بانتظار التأكيد",en:"Awaiting"},
+totUnpaidBills:{ar:"فواتير غير مدفوعة",en:"Unpaid bills"},
 cannotSelfApprove:{ar:"لا يمكنك اعتماد عملية قمت بها بنفسك — يجب أن يعتمدها شخص آخر",en:"You cannot approve a step you performed yourself — another person must approve it"},
 waitingOn:{ar:"بانتظار: {who}",en:"Waiting on: {who}"},
 sheetsTitle:{ar:"ربط جوجل شيت",en:"Google Sheets link"},
@@ -1288,7 +1330,9 @@ function cashOnHand(branchId){
   return cash-exp-handed;
 }
 function sumSalesByType(branchId,period,type){
-  return salesFor(branchId,period).filter(function(s){return !type||s.type===type;}).reduce(function(a,s){return a+Number(s.amount||0);},0);
+  return salesFor(branchId,period).filter(function(s){
+    return type ? s.type===type : REVENUE_TYPES.indexOf(s.type)>-1;
+  }).reduce(function(a,s){return a+Number(s.amount||0);},0);
 }
 function sumExpenses(branchId,period){ return expensesFor(branchId,period).reduce(function(a,e){return a+Number(e.amount||0);},0); }
 /* Treasury/accountant petty cash: cash confirmed into the treasury, minus what the
@@ -1337,6 +1381,7 @@ function renderShell(){
       '<div class="pulse" id="pulse-box"><i></i><span id="pulse-text"></span></div>'+
       '<button class="topbar-avatar" data-action="open-account" aria-label="'+t('myAccount')+'">'+initials(STATE.session.name)+'</button>'+
     '</div>'+
+    '<div id="totals"></div>'+
     '<div id="view"></div>'+
   '</div>';
   html+='<div class="bottomnav">'+nav.map(function(n){return bnItemHtml(n[0],n[1],n[2]);}).join('')+'</div>';
@@ -1379,6 +1424,60 @@ function updateTopbar(){
   }
 }
 
+
+/* ===================== ALWAYS-ON TOTALS STRIP =====================
+   A sticky summary under the app bar, shown on every tab for every role, so
+   the figure that matters is never more than a glance away. */
+function totalItem(label,value,cls,isCount){
+  return '<div class="tot '+(cls||'')+'">'+
+    '<span>'+label+'</span>'+
+    '<b class="mono">'+(isCount?value:fmtMoney(value))+(isCount?'':' <i>'+t('sar')+'</i>')+'</b>'+
+  '</div>';
+}
+function totalsStrip(){
+  if(!STATE.session) return '';
+  var r=STATE.session.role, out='';
+  var unpaidBills=billsFor().filter(function(b){return b.status!=='paid';})
+      .reduce(function(a,b){return a+Number(b.amount||0);},0);
+
+  if(r==='manager'){
+    var b=STATE.session.branchId;
+    out= totalItem(t('cashOnHand'), cashOnHand(b), 'accent')
+       + totalItem(t('totRevenue'), sumSalesByType(b,'today',null))
+       + totalItem(t('todayExpenses'), sumExpenses(b,'today'))
+       + totalItem(t('totHospitality'), sumSalesByType(b,'today','hospitality'), 'violet')
+       + totalItem(t('totUnpaidBills'), unpaidBills, unpaidBills>0?'warn':'');
+  } else if(r==='collector'){
+    var pend=scopeToMyCollectorBranches(handoversFor(null).filter(function(h){return h.status==='pending';}));
+    var held=handoversFor(null).filter(function(h){return h.status==='collected' && h.collectorId===STATE.session.id;});
+    out= totalItem(t('pendingPickups'), pend.length, 'warn', true)
+       + totalItem(t('totToCollect'), pend.reduce(function(a,h){return a+Number(h.declaredAmount||0);},0), 'accent')
+       + totalItem(t('totAwaiting'), held.reduce(function(a,h){return a+Number(h.collectedAmount||0);},0));
+  } else if(r==='treasury'){
+    var col=handoversFor(null).filter(function(h){return h.status==='collected';});
+    out= totalItem(t('pettyCash'), treasuryPettyCash(), 'accent')
+       + totalItem(t('totAwaiting'), col.reduce(function(a,h){return a+Number(h.collectedAmount||0);},0), 'warn')
+       + totalItem(t('networkConfirmed'), treasuryInflow())
+       + totalItem(t('totUnpaidBills'), unpaidBills, unpaidBills>0?'warn':'');
+  } else if(r==='area'){
+    var mine=branchesForArea(STATE.session.name); if(!mine.length) mine=allBranchIds();
+    out= totalItem(t('myBranches'), mine.length, '', true)
+       + totalItem(t('totRevenue'), mine.reduce(function(a,id){return a+sumSalesByType(id,'today',null);},0))
+       + totalItem(t('cashOnHand'), mine.reduce(function(a,id){return a+cashOnHand(id);},0), 'accent')
+       + totalItem(t('todayExpenses'), mine.reduce(function(a,id){return a+sumExpenses(id,'today');},0));
+  } else {
+    var transit=Object.keys(STATE.data.handovers).map(function(id){return STATE.data.handovers[id];})
+      .filter(function(h){return h.status!=='confirmed';})
+      .reduce(function(a,h){return a+Number(h.declaredAmount||0);},0);
+    out= totalItem(t('totBranches'), allBranchIds().length, '', true)
+       + totalItem(t('totNetwork'), sumSalesByType(null,'today',null), 'accent')
+       + totalItem(t('networkCashTransit'), transit, 'warn')
+       + totalItem(t('networkConfirmed'), treasuryInflow())
+       + totalItem(t('totUnpaidBills'), unpaidBills, unpaidBills>0?'warn':'');
+  }
+  return '<div class="totals-strip">'+out+'</div>';
+}
+
 /* ===================== VIEW ROUTER ===================== */
 function renderView(){
   var v=document.getElementById('view');
@@ -1392,6 +1491,8 @@ function renderView(){
   else if(STATE.tab==='bills') html=renderBills();
   else if(STATE.tab==='admin') html=renderAdmin();
   v.innerHTML=html;
+  var tot=document.getElementById('totals');
+  if(tot) tot.innerHTML=totalsStrip();
   updateTopbar();
   // animate kpi counters
   v.querySelectorAll('[data-count]').forEach(function(el){ animateValue(el, Number(el.getAttribute('data-count'))); });
@@ -1527,8 +1628,8 @@ function renderSales(){
   var bId=STATE.session.branchId;
   var list=salesFor(bId,'all').sort(function(a,b){return new Date(b.createdAt)-new Date(a.createdAt);});
   var totalToday=sumSalesByType(bId,'today',null);
-  var html='<div class="kpi-grid stagger" style="grid-template-columns:repeat(3,1fr)">'+
-    payKpi('pos',bId)+payKpi('cash',bId)+payKpi('other',bId)+
+  var html='<div class="kpi-grid stagger">'+
+    PAY_TYPES.map(function(pt){ return payKpi(pt.id,bId); }).join('')+
   '</div>';
   html+='<div class="section"><div class="card"><div class="card-head"><h3>'+t('salesLog')+'</h3><button class="btn btn-primary btn-sm" data-action="open-sale">'+icon('plus')+t('addSale')+'</button></div><div class="card-body">'+
     (list.length? list.map(saleRow).join('') : emptyState('sales',t('noSalesYet'),t('startAdding')))+
@@ -1538,11 +1639,11 @@ function renderSales(){
 }
 function payKpi(type,bId){
   var v=sumSalesByType(bId,'today',type);
-  var icons={pos:'bank',cash:'wallet',other:'wallet'};
+  var icons={pos:'bank',cash:'wallet',other:'wallet',hospitality:'user'};
   return '<div class="kpi"><div class="lbl">'+icon(icons[type])+' '+catLabel(PAY_TYPES,type)+'</div><div class="val"><span class="mono" data-count="'+v+'">0</span></div></div>';
 }
 function saleRow(s){
-  return '<div class="row"><div class="ricon">'+icon(s.type==='pos'?'bank':'wallet')+'</div><div class="rmain"><b>'+catLabel(PAY_TYPES,s.type)+'</b><div class="rmeta"><span class="chip '+s.type+'">'+catLabel(PAY_TYPES,s.type)+'</span><span>'+fmtDate(s.createdAt)+'</span>'+(s.note?'<span>· '+esc(s.note)+'</span>':'')+'</div></div><div class="ramt pos">+ '+fmtMoney(s.amount)+'</div></div>';
+  return '<div class="row"><div class="ricon">'+icon(s.type==='pos'?'bank':(s.type==='hospitality'?'user':'wallet'))+'</div><div class="rmain"><b>'+catLabel(PAY_TYPES,s.type)+'</b><div class="rmeta"><span class="chip '+s.type+'">'+catLabel(PAY_TYPES,s.type)+'</span><span>'+fmtDate(s.createdAt)+'</span>'+(s.note?'<span>· '+esc(s.note)+'</span>':'')+'</div></div><div class="ramt pos">+ '+fmtMoney(s.amount)+'</div></div>';
 }
 
 /* ===================== EXPENSES TAB ===================== */
