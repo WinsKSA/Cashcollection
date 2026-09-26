@@ -3,6 +3,8 @@
  *  Deploy > New deployment > Web app > Execute as: Me > Access: Anyone.
  */
 
+var VERSION = 'v2-dynamic';
+
 var COLLECTIONS = ['cities','branches','staff','sales','expenses','handovers','editRequests'];
 
 function sh_(name) {
@@ -70,7 +72,7 @@ function doGet(e) {
     }
     var all = {};
     for (var n in names) all[n] = readAll_(n);
-    return json_({ ok: true, data: all, at: new Date().toISOString() });
+    return json_({ ok: true, version: VERSION, data: all, at: new Date().toISOString() });
   } catch (err) {
     return json_({ ok: false, error: String(err) });
   }
