@@ -1,0 +1,14 @@
+﻿المعرف,الاسم,الأدوار (عربي),roles,الفرع,branchId
+u-omran,Omran,مدير فرع,manager,خريص,khurais
+u-abdo,Abdo,مدير فرع,manager,قرطبة,qurtubah
+u-ahmedadel,Ahmed Adel,مدير منطقة + مدير فرع,area + manager,ونس كافيه,wins-cafe
+u-mahmoud,Mahmoud Salah,مدير فرع,manager,درايف الندوة,drive-nadwah
+u-amr,Amr Beshir,مدير فرع,manager,درايف المرمر,drive-marmar
+u-monem,Mohamed Abdelmonem,مدير فرع,manager,درايف المحيط,drive-muheet
+u-raqeeb,Raqeeb,مدير فرع,manager,درايف المعالي,drive-maali
+u-abdullah,Abdullah,مدير فرع,manager,درايف العزيزية,drive-aziziyah
+u-hesham,Hesham,مدير فرع,manager,المخزن الرئيسي,warehouse
+u-sobhy,Sobhy,مدير عام + الخزينة + مدير فرع,admin + treasury + manager,مكتب الادارة,hq-office
+u-ahmedhael,Ahmed Hael,محصّل,collector,,
+u-nasr,Mohamed Nasr,مدير منطقة + محصّل,area + collector,,
+u-treasury,Treasury,الخزينة,treasury,,
