@@ -20,13 +20,14 @@
      and is never recoloured or restyled. */
   --brand:#C9A04D;
   --brand-lift:#E4BE72;
-  --gold:#FFC46B;
+  --gold:#EFAE4E;
   --gold-soft:rgba(255,196,107,.14);
   --violet:#8B7BFF;
   --violet-soft:rgba(139,123,255,.14);
   --rose:#FF6B6B;
   --rose-soft:rgba(255,107,107,.14);
   --glow-mint:0 0 0 1px rgba(0,230,162,.25), 0 8px 40px -8px rgba(0,230,162,.45);
+  --glow-brand:0 0 0 1px rgba(201,160,77,.3), 0 8px 40px -8px rgba(201,160,77,.55);
   --glow-gold:0 0 0 1px rgba(255,196,107,.22), 0 8px 34px -10px rgba(255,196,107,.4);
   --shadow:0 2px 6px rgba(0,0,0,.4), 0 18px 50px -20px rgba(0,0,0,.85);
   --shadow-lg:0 30px 90px -28px rgba(0,0,0,.95);
@@ -49,7 +50,7 @@ body{
 h1,h2,h3,h4{font-family:var(--font-display);margin:0;text-wrap:balance;letter-spacing:-.01em}
 button{font-family:inherit}
 .mono{font-family:var(--font-mono);font-variant-numeric:tabular-nums;letter-spacing:-.02em}
-::selection{background:var(--mint);color:#04211A}
+::selection{background:var(--brand);color:#241802}
 ::-webkit-scrollbar{width:10px;height:10px}
 ::-webkit-scrollbar-track{background:transparent}
 ::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:99px;border:3px solid transparent;background-clip:content-box}
@@ -182,9 +183,9 @@ button{font-family:inherit}
 .navitem svg{width:19px;height:19px;flex:none}
 .navitem:hover{color:var(--ink);background:var(--surface)}
 .navitem.active{
-  color:#04211A;
-  background:linear-gradient(135deg,var(--mint-2),var(--mint-deep));
-  box-shadow:var(--glow-mint);
+  color:#241802;
+  background:linear-gradient(135deg,var(--brand-lift),var(--brand));
+  box-shadow:var(--glow-brand);
 }
 .navitem.active svg{filter:drop-shadow(0 1px 2px rgba(0,0,0,.2))}
 
@@ -196,7 +197,7 @@ button{font-family:inherit}
   color:var(--ink-dim);font-size:11.5px;font-weight:800;cursor:pointer;transition:all .18s;
 }
 .mini-btn:hover{border-color:var(--line-bright);color:var(--ink)}
-.mini-btn.on{background:rgba(0,230,162,.12);border-color:rgba(0,230,162,.4);color:var(--mint)}
+.mini-btn.on{background:rgba(201,160,77,.14);border-color:rgba(201,160,77,.45);color:var(--brand-lift)}
 .who-card{
   display:flex;align-items:center;gap:11px;padding:11px;border-radius:15px;cursor:pointer;
   background:var(--surface);border:1px solid var(--line);transition:all .18s;
@@ -204,8 +205,8 @@ button{font-family:inherit}
 .who-card:hover{border-color:var(--line-bright);background:var(--elev)}
 .avatar{
   width:36px;height:36px;border-radius:12px;flex:none;display:flex;align-items:center;justify-content:center;
-  font-family:var(--font-display);font-weight:800;font-size:14px;color:#04211A;
-  background:linear-gradient(135deg,var(--mint-2),var(--mint-deep));
+  font-family:var(--font-display);font-weight:800;font-size:14px;color:#241802;
+  background:linear-gradient(135deg,var(--brand-lift),var(--brand));
 }
 .who-text{overflow:hidden}
 .who-text b{display:block;font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -265,9 +266,66 @@ button{font-family:inherit}
   font-size:12.5px;font-weight:700;line-height:1.6;
   background:var(--rose-soft);color:var(--rose);border:1px solid rgba(255,107,107,.3)}
 
+.topbar-bell{
+  position:relative;flex:none;width:38px;height:38px;border-radius:13px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  background:var(--rose-soft);border:1px solid rgba(255,107,107,.35);color:var(--rose);
+  animation:bellRing 2.4s ease-in-out infinite;
+}
+.topbar-bell.on{background:var(--gold-soft);border-color:rgba(239,174,78,.4);color:var(--gold);animation:none}
+.topbar-bell i{
+  position:absolute;top:-5px;inset-inline-end:-5px;min-width:18px;height:18px;padding:0 4px;
+  border-radius:99px;background:var(--rose);color:#fff;font-style:normal;
+  font-size:10.5px;font-weight:800;display:flex;align-items:center;justify-content:center;
+}
+.topbar-bell.on i{background:var(--gold);color:#241802}
+@keyframes bellRing{0%,88%,100%{transform:rotate(0)}90%{transform:rotate(-12deg)}94%{transform:rotate(12deg)}}
+
+.filter-bar{
+  position:sticky;top:calc(66px + env(safe-area-inset-top,0px));z-index:19;
+  display:flex;align-items:center;gap:8px;padding:10px 30px;overflow-x:auto;
+  background:rgba(6,7,11,.82);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+  border-bottom:1px solid var(--line);scrollbar-width:none;
+}
+.filter-bar::-webkit-scrollbar{display:none}
+.fb-label{flex:none;font-size:9.5px;font-weight:800;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--ink-faint);margin-inline-end:2px}
+.fchip{
+  flex:none;display:inline-flex;align-items:center;gap:6px;padding:7px 13px;border-radius:99px;
+  border:1px solid var(--line);background:var(--surface);color:var(--ink-dim);
+  font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;transition:all .18s;
+}
+.fchip:hover{border-color:var(--line-bright);color:var(--ink)}
+.fchip.on{background:rgba(201,160,77,.16);border-color:rgba(201,160,77,.45);color:var(--brand-lift)}
+.fb-range{direction:ltr;font-family:var(--font-mono);font-size:11px}
+@media(max-width:860px){
+  .filter-bar{padding:9px 16px;top:calc(58px + env(safe-area-inset-top,0px))}
+  .fb-label{display:none}
+}
+
+.recon .card-head h3{display:flex;align-items:center;gap:8px}
+.recon.ok{border-color:rgba(0,230,162,.34)}
+.recon.short,.recon.over{border-color:rgba(255,107,107,.4);box-shadow:0 10px 40px -16px rgba(255,107,107,.55)}
+.recon-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:14px;margin-bottom:12px}
+.recon-grid>div{padding:13px 15px;border-radius:14px;border:1px solid var(--line);
+  background:linear-gradient(160deg,rgba(255,255,255,.05),rgba(255,255,255,.015))}
+.recon-grid span{display:block;font-size:9.5px;font-weight:800;letter-spacing:.11em;
+  text-transform:uppercase;color:var(--ink-faint)}
+.recon-grid b{display:block;margin-top:6px;font-size:19px;font-weight:600}
+.recon-grid em{display:block;margin-top:4px;font-style:normal;font-size:10.5px;font-weight:700}
+.recon.ok .recon-diff{border-color:rgba(0,230,162,.4);background:linear-gradient(160deg,rgba(0,230,162,.13),transparent)}
+.recon.ok .recon-diff b,.recon.ok .recon-diff em{color:var(--mint)}
+.recon.short .recon-diff,.recon.over .recon-diff{border-color:rgba(255,107,107,.45);
+  background:linear-gradient(160deg,rgba(255,107,107,.15),transparent);animation:reconPulse 2.2s ease-in-out infinite}
+.recon.short .recon-diff b,.recon.over .recon-diff b,
+.recon.short .recon-diff em,.recon.over .recon-diff em{color:var(--rose)}
+@keyframes reconPulse{0%,100%{box-shadow:0 0 0 0 rgba(255,107,107,.32)}60%{box-shadow:0 0 0 10px rgba(255,107,107,0)}}
+.recon-ok{color:var(--mint);font-weight:700}
+.recon-bad{color:var(--rose);font-weight:800}
+
 /* ---------- always-on totals strip ---------- */
 .totals-strip{
-  position:sticky;top:calc(66px + env(safe-area-inset-top,0px));z-index:18;
+  position:sticky;top:calc(118px + env(safe-area-inset-top,0px));z-index:18;
   display:flex;gap:10px;padding:12px 30px;overflow-x:auto;-webkit-overflow-scrolling:touch;
   background:rgba(6,7,11,.72);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
   border-bottom:1px solid var(--line);scrollbar-width:none;
@@ -288,7 +346,7 @@ button{font-family:inherit}
 .tot.violet{border-color:rgba(139,123,255,.3);background:linear-gradient(160deg,rgba(139,123,255,.1),rgba(139,123,255,.02))}
 .tot.violet b{color:var(--violet)}
 @media(max-width:860px){
-  .totals-strip{padding:10px 16px;gap:8px;top:calc(58px + env(safe-area-inset-top,0px))}
+  .totals-strip{padding:10px 16px;gap:8px;top:calc(105px + env(safe-area-inset-top,0px))}
   .tot{min-width:112px;padding:9px 12px}
   .tot b{font-size:15px}
 }
@@ -317,7 +375,7 @@ button{font-family:inherit}
 .bill-right{display:flex;flex-direction:column;align-items:flex-end;gap:8px;flex:none}
 .check-row{display:flex;align-items:center;gap:11px;margin:16px 0;cursor:pointer;
   font-size:13.5px;color:var(--ink-dim)}
-.check-row input{width:19px;height:19px;accent-color:var(--mint);flex:none}
+.check-row input{width:19px;height:19px;accent-color:var(--brand);flex:none}
 @media(max-width:620px){
   .bill-alert .ba-go{display:none}
   .bill-right .btn{padding:7px 11px;font-size:11.5px}
@@ -344,8 +402,8 @@ button{font-family:inherit}
 }
 .btn svg{width:16px;height:16px}
 .btn:active{transform:scale(.96)}
-.btn-primary{background:linear-gradient(135deg,var(--mint-2),var(--mint-deep));color:#04211A;box-shadow:var(--glow-mint)}
-.btn-primary:hover{filter:brightness(1.1);box-shadow:0 0 0 1px rgba(0,230,162,.35),0 12px 48px -8px rgba(0,230,162,.6)}
+.btn-primary{background:linear-gradient(135deg,var(--brand-lift),var(--brand));color:#241802;box-shadow:var(--glow-brand)}
+.btn-primary:hover{filter:brightness(1.08);box-shadow:0 0 0 1px rgba(201,160,77,.4),0 12px 48px -8px rgba(201,160,77,.7)}
 .btn-ghost{background:var(--surface);border-color:var(--line);color:var(--ink)}
 .btn-ghost:hover{border-color:var(--line-bright);background:var(--elev)}
 .btn-danger{background:var(--rose-soft);color:var(--rose);border-color:rgba(255,107,107,.3)}
@@ -363,8 +421,8 @@ button{font-family:inherit}
   position:fixed;inset-inline-end:24px;bottom:96px;z-index:25;
   width:58px;height:58px;border:none;border-radius:20px;cursor:pointer;
   display:flex;align-items:center;justify-content:center;
-  background:linear-gradient(135deg,var(--mint-2),var(--mint-deep));color:#04211A;
-  box-shadow:0 0 0 1px rgba(0,230,162,.3),0 14px 46px -8px rgba(0,230,162,.65);
+  background:linear-gradient(135deg,var(--brand-lift),var(--brand));color:#241802;
+  box-shadow:0 0 0 1px rgba(201,160,77,.35),0 14px 46px -8px rgba(201,160,77,.7);
   animation:fabIn .5s cubic-bezier(.34,1.56,.64,1) both .3s;
 }
 .fab svg{width:25px;height:25px}
@@ -453,8 +511,8 @@ button{font-family:inherit}
 }
 .field input::placeholder,.field textarea::placeholder{color:var(--ink-faint)}
 .field input:focus,.field select:focus,.field textarea:focus{
-  outline:none;border-color:var(--mint);background:rgba(0,230,162,.05);
-  box-shadow:0 0 0 4px rgba(0,230,162,.12);
+  outline:none;border-color:var(--brand);background:rgba(201,160,77,.06);
+  box-shadow:0 0 0 4px rgba(201,160,77,.16);
 }
 .field select{
   appearance:none;padding-inline-end:42px;
@@ -471,12 +529,12 @@ button{font-family:inherit}
   background:rgba(255,255,255,.03);border:1.5px solid var(--line);transition:all .2s;
 }
 .seg-opt:hover{border-color:var(--line-bright);color:var(--ink)}
-.seg-opt.sel{border-color:var(--mint);background:var(--mint-soft);color:var(--mint);box-shadow:0 0 0 3px rgba(0,230,162,.1)}
+.seg-opt.sel{border-color:var(--brand);background:rgba(201,160,77,.13);color:var(--brand-lift);box-shadow:0 0 0 3px rgba(201,160,77,.12)}
 .amt-input{position:relative}
 .amt-input input{font-family:var(--font-mono);font-size:26px;font-weight:600;padding-inline-end:62px;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
 .amt-input .cur{position:absolute;inset-inline-end:16px;top:50%;transform:translateY(-50%);font-size:12px;font-weight:800;color:var(--ink-faint)}
 .upload-box{padding:18px;border-radius:13px;border:1.5px dashed var(--line-bright);text-align:center;cursor:pointer;color:var(--ink-faint);font-size:12px;font-weight:700;transition:all .2s}
-.upload-box:hover{border-color:var(--mint);color:var(--mint);background:var(--mint-soft)}
+.upload-box:hover{border-color:var(--brand);color:var(--brand-lift);background:rgba(201,160,77,.1)}
 .upload-preview{display:flex;align-items:center;gap:12px;padding:10px;border-radius:13px;border:1px solid var(--line);background:var(--surface)}
 .upload-preview img{width:46px;height:46px;border-radius:10px;object-fit:cover}
 .hint{margin-top:6px;font-size:11px;color:var(--ink-faint);line-height:1.6}
@@ -499,7 +557,7 @@ button{font-family:inherit}
 .sheet form>.btn-block:last-child,
 .sheet .sheet-body>.btn-block:last-child{
   position:sticky;bottom:0;z-index:3;margin-top:6px;
-  box-shadow:0 -14px 22px -6px #0B0D13, var(--glow-mint);
+  box-shadow:0 -14px 22px -6px #0B0D13, var(--glow-brand);
 }
 .sheet-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:2px 22px 14px}
 .sheet-head h3{font-size:17px;font-weight:800}
@@ -559,9 +617,9 @@ button{font-family:inherit}
 .role-card svg{width:21px;height:21px;margin-bottom:7px;color:var(--ink-faint);transition:color .22s}
 .role-card b{display:block;font-size:12px;font-weight:700;color:var(--ink-dim)}
 .role-card:hover{border-color:var(--line-bright);transform:translateY(-2px)}
-.role-card.sel{border-color:var(--mint);background:var(--mint-soft);box-shadow:0 0 0 3px rgba(0,230,162,.1)}
-.role-card.sel svg{color:var(--mint)}
-.role-card.sel b{color:var(--mint)}
+.role-card.sel{border-color:var(--brand);background:rgba(201,160,77,.13);box-shadow:0 0 0 3px rgba(201,160,77,.12)}
+.role-card.sel svg{color:var(--brand-lift)}
+.role-card.sel b{color:var(--brand-lift)}
 .role-grid .role-card:last-child:nth-child(odd){grid-column:1/-1;display:flex;align-items:center;justify-content:center;gap:9px}
 .role-grid .role-card:last-child:nth-child(odd) svg{margin-bottom:0}
 .lang-float{position:fixed;top:18px;inset-inline-end:18px;z-index:5;display:flex;gap:7px}
@@ -570,7 +628,7 @@ button{font-family:inherit}
 .tabbar{display:flex;gap:5px;width:fit-content;margin-bottom:20px;padding:5px;border-radius:14px;background:var(--surface);border:1px solid var(--line)}
 .tabbar button{padding:9px 16px;border:none;border-radius:10px;background:none;cursor:pointer;font-size:12.5px;font-weight:700;color:var(--ink-dim);transition:all .2s}
 .tabbar button:hover{color:var(--ink)}
-.tabbar button.active{background:rgba(0,230,162,.14);color:var(--mint);box-shadow:inset 0 0 0 1px rgba(0,230,162,.25)}
+.tabbar button.active{background:rgba(201,160,77,.16);color:var(--brand-lift);box-shadow:inset 0 0 0 1px rgba(201,160,77,.3)}
 .table-scroll{width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}
 table.datatable{width:100%;min-width:430px;border-collapse:collapse;font-size:12.5px}
 table.datatable th{padding:10px 12px;border-bottom:1px solid var(--line);text-align:start;font-size:10px;font-weight:800;letter-spacing:.11em;text-transform:uppercase;color:var(--ink-faint)}
@@ -579,7 +637,7 @@ table.datatable tr:last-child td{border-bottom:none}
 table.datatable tbody tr{transition:background .18s}
 table.datatable tbody tr:hover{background:rgba(255,255,255,.025)}
 .bar-track{height:7px;border-radius:99px;background:rgba(255,255,255,.07);overflow:hidden}
-.bar-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--mint-deep),var(--mint-2));box-shadow:0 0 14px rgba(0,230,162,.5);animation:barGrow 1s cubic-bezier(.16,1,.3,1) both}
+.bar-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--brand),var(--brand-lift));box-shadow:0 0 14px rgba(201,160,77,.45);animation:barGrow 1s cubic-bezier(.16,1,.3,1) both}
 @keyframes barGrow{from{width:0!important}}
 
 /* ---------- layout helpers ---------- */
@@ -610,8 +668,8 @@ table.datatable tbody tr:hover{background:rgba(255,255,255,.025)}
     font-size:9.5px;font-weight:700;color:var(--ink-faint);transition:color .2s;
   }
   .bn-item svg{width:23px;height:23px}
-  .bn-item.active{color:var(--mint)}
-  .bn-item.active svg{filter:drop-shadow(0 0 10px rgba(0,230,162,.7))}
+  .bn-item.active{color:var(--brand-lift)}
+  .bn-item.active svg{filter:drop-shadow(0 0 10px rgba(201,160,77,.75))}
 
   /* ---- native-app feel: full-bleed login ---- */
   .login-wrap{padding:0;align-items:stretch;min-height:100dvh}
@@ -657,9 +715,9 @@ table.datatable tbody tr:hover{background:rgba(255,255,255,.025)}
 .topbar-avatar{
   display:flex;align-items:center;justify-content:center;flex:none;
   width:38px;height:38px;border-radius:13px;cursor:pointer;
-  font-family:var(--font-display);font-weight:800;font-size:14px;color:#04211A;
-  background:linear-gradient(135deg,var(--mint-2),var(--mint-deep));
-  border:none;box-shadow:0 6px 18px -6px rgba(0,230,162,.7);
+  font-family:var(--font-display);font-weight:800;font-size:14px;color:#241802;
+  background:linear-gradient(135deg,var(--brand-lift),var(--brand));
+  border:none;box-shadow:0 6px 18px -6px rgba(201,160,77,.75);
   transition:transform .15s,filter .2s;
 }
 .topbar-avatar:hover{filter:brightness(1.1)}
@@ -908,13 +966,44 @@ nextCreated:{ar:"تم إنشاء فاتورة الشهر القادم",en:"Next 
 billSaved:{ar:"تم حفظ الفاتورة",en:"Bill saved"},
 billPaid:{ar:"تم تسجيل السداد",en:"Payment recorded"},
 billOf:{ar:"فاتورة",en:"Bill"},
-totHospitality:{ar:"ضيافة اليوم",en:"Hospitality today"},
-totRevenue:{ar:"إيراد اليوم",en:"Revenue today"},
+totHospitality:{ar:"ضيافة",en:"Hospitality"},
+totRevenue:{ar:"الإيراد",en:"Revenue"},
 totNetwork:{ar:"إيراد الشبكة",en:"Network revenue"},
+totExpenses:{ar:"المصروفات",en:"Expenses"},
+reconTitle:{ar:"مطابقة تاب سينس (TopSense)",en:"TopSense reconciliation"},
+reconSystem:{ar:"إجمالي تاب سينس",en:"TopSense total"},
+reconEntered:{ar:"إجمالي المُدخل",en:"Entered total"},
+reconDiff:{ar:"الفرق",en:"Variance"},
+reconMatch:{ar:"مطابق تماماً",en:"Fully matched"},
+reconShort:{ar:"نقص في المُدخل",en:"Under-entered"},
+reconOver:{ar:"زيادة في المُدخل",en:"Over-entered"},
+reconAdd:{ar:"تسجيل إجمالي تاب سينس",en:"Record TopSense total"},
+reconDate:{ar:"تاريخ التقرير",en:"Report date"},
+reconTotal:{ar:"الإجمالي من نظام تاب سينس",en:"Total from TopSense"},
+reconNone:{ar:"لم يُسجَّل إجمالي تاب سينس لهذه الفترة",en:"No TopSense total recorded for this period"},
+reconNoteHint:{ar:"يُقارن بإيراد المبيعات المُدخلة (بدون الضيافة)",en:"Compared against entered revenue (hospitality excluded)"},
+reconSaved:{ar:"تم تسجيل إجمالي تاب سينس",en:"TopSense total recorded"},
+reconBranches:{ar:"فروع بها فروقات",en:"Branches with variance"},
 totBranches:{ar:"الفروع",en:"Branches"},
 totToCollect:{ar:"مطلوب تحصيله",en:"To collect"},
 totAwaiting:{ar:"بانتظار التأكيد",en:"Awaiting"},
 totUnpaidBills:{ar:"فواتير غير مدفوعة",en:"Unpaid bills"},
+notifTitle:{ar:"تنبيه فواتير ونس",en:"WINS bill alert"},
+notifBodyOverdue:{ar:"{n} فاتورة متأخرة — خطر قطع الخدمة",en:"{n} overdue bills — cut-off risk"},
+notifBodySoon:{ar:"{n} فاتورة تستحق خلال {d} أيام",en:"{n} bills due within {d} days"},
+notifEnable:{ar:"تفعيل التنبيهات",en:"Enable alerts"},
+notifOn:{ar:"التنبيهات مفعّلة",en:"Alerts on"},
+notifBlocked:{ar:"التنبيهات محظورة من المتصفح",en:"Alerts blocked by the browser"},
+fToday:{ar:"اليوم",en:"Today"},
+fYesterday:{ar:"أمس",en:"Yesterday"},
+fWeek:{ar:"٧ أيام",en:"7 days"},
+fMonth:{ar:"هذا الشهر",en:"This month"},
+fAll:{ar:"الكل",en:"All"},
+fCustom:{ar:"تاريخ محدد",en:"Custom"},
+fFrom:{ar:"من",en:"From"},
+fTo:{ar:"إلى",en:"To"},
+fApply:{ar:"تطبيق",en:"Apply"},
+fRange:{ar:"الفترة",en:"Period"},
 cannotSelfApprove:{ar:"لا يمكنك اعتماد عملية قمت بها بنفسك — يجب أن يعتمدها شخص آخر",en:"You cannot approve a step you performed yourself — another person must approve it"},
 waitingOn:{ar:"بانتظار: {who}",en:"Waiting on: {who}"},
 sheetsTitle:{ar:"ربط جوجل شيت",en:"Google Sheets link"},
@@ -1028,7 +1117,7 @@ var Store = (function(){
   var mode='local', dbns=null, assetsns=null;
   var LS_KEY='wins_cash_local_v1';
   var API_KEY='wins_api_url';
-  var COLS=['cities','branches','staff','sales','expenses','handovers','editRequests','bills'];
+  var COLS=['cities','branches','staff','sales','expenses','handovers','editRequests','bills','systemSales'];
   var local=null;
   var listeners={}; // path -> [cb]
   var apiUrl=null, pollTimer=null, lastSig='', pendingPush=[], pushing=false;
@@ -1085,7 +1174,10 @@ var Store = (function(){
     if(mode!=='sheets'||pendingPush.length||pushing) return;
     try{
       var fresh=await apiGet(apiUrl);
-      COLS.forEach(function(c){ if(!fresh[c]) fresh[c]={}; });
+      /* Keep any collection the backend does not return. An older deployment
+         reports only the collections it knows about, and blanking them here
+         would silently destroy local records that were never uploaded. */
+      COLS.forEach(function(c){ if(!fresh[c]) fresh[c]=(local&&local[c])||{}; });
       var sig=signature(fresh);
       if(sig!==lastSig){ lastSig=sig; local=fresh; saveLocal(); COLS.forEach(emit); }
     }catch(e){ /* stay on the cached copy until the network returns */ }
@@ -1101,7 +1193,7 @@ var Store = (function(){
   }
   function saveLocal(){ try{ localStorage.setItem(LS_KEY, encodeURIComponent(JSON.stringify(local))); }catch(e){} }
   function seedLocal(){
-    local={cities:{},branches:{},staff:{},sales:{},expenses:{},handovers:{},bills:{}};
+    local={cities:{},branches:{},staff:{},sales:{},expenses:{},handovers:{},bills:{},systemSales:{}};
     CITIES_SEED.forEach(function(c){ local.cities[c.id]={nameAr:c.nameAr,nameEn:c.nameEn,order:0}; });
     BRANCHES_SEED.forEach(function(b,i){ local.branches[b.id]={nameAr:b.nameAr,nameEn:b.nameEn,cityId:b.cityId,managerName:b.managerName||"",areaManagerName:b.areaManagerName||"",collectorName:b.collectorName||"",active:true,order:i}; });
     var now=Date.now();
@@ -1228,10 +1320,12 @@ var STATE={
   theme: localStorage.getItem('wins_theme')||'',
   session: null,
   tab:'dashboard',
-  data:{cities:{},branches:{},staff:{},sales:{},expenses:{},handovers:{},bills:{}},
+  range:{key:'today',from:null,to:null},
+  data:{cities:{},branches:{},staff:{},sales:{},expenses:{},handovers:{},bills:{},systemSales:{}},
   loaded:{cities:false,branches:false,staff:false,sales:false,expenses:false,handovers:false}
 };
 try{ var s=localStorage.getItem('wins_session'); if(s) STATE.session=JSON.parse(decodeURIComponent(s)); }catch(e){}
+STATE.range=loadRange();
 if(STATE.theme) document.documentElement.setAttribute('data-theme',STATE.theme);
 
 function fmtMoney(n){
@@ -1299,6 +1393,7 @@ function handoversFor(branchId){
     .sort(function(a,b){ return new Date(b.createdAt)-new Date(a.createdAt); });
 }
 function inPeriod(iso,period){
+  if(period==='range') return inRange(iso);
   if(!period||period==='all') return true;
   var d=new Date(iso), now=new Date();
   if(period==='today') return d.toDateString()===now.toDateString();
@@ -1361,6 +1456,7 @@ function renderShell(){
   html+='<div id="main">'+
     '<div class="topbar">'+logoMark('topbar-logo')+'<div style="flex:1;min-width:0"><h2 id="topbar-title"></h2><div class="sub" id="topbar-sub"></div></div>'+
       '<div class="pulse" id="pulse-box"><i></i><span id="pulse-text"></span></div>'+
+      '<span id="bell-slot"></span>'+
       '<button class="topbar-avatar" data-action="open-account" aria-label="'+t('myAccount')+'">'+initials(STATE.session.name)+'</button>'+
     '</div>'+
     '<div id="totals"></div>'+
@@ -1407,14 +1503,203 @@ function updateTopbar(){
 }
 
 
+
+
+
+/* ===================== SALES SYSTEM RECONCILIATION =====================
+   The till/POS system reports one total per branch per day. Comparing it with
+   the transactions entered here surfaces unrecorded or mistyped sales. One
+   record per branch per day, so re-submitting a day overwrites it. */
+function systemTotalFor(branchId, period){
+  return Object.keys(STATE.data.systemSales||{})
+    .map(function(id){ return STATE.data.systemSales[id]; })
+    .filter(function(r){
+      if(!r) return false;
+      if(branchId && r.branchId!==branchId) return false;
+      return period==='range' ? inRange(r.dateKey) : true;
+    })
+    .reduce(function(a,r){ return a+Number(r.systemTotal||0); },0);
+}
+/* Hospitality is given away and never appears in the till's revenue, so the
+   comparison uses revenue types only. */
+function reconFor(branchId){
+  var sys=systemTotalFor(branchId,'range');
+  var entered=sumSalesByType(branchId,'range',null);
+  return {sys:sys, entered:entered, diff:sys-entered, hasSystem:sys>0};
+}
+function reconCard(branchId){
+  var r=reconFor(branchId);
+  var state = !r.hasSystem ? 'none' : (r.diff===0 ? 'ok' : (r.diff>0 ? 'short' : 'over'));
+  var label = state==='ok' ? t('reconMatch') : state==='short' ? t('reconShort') : t('reconOver');
+  var canAdd = ['manager','treasury','admin'].indexOf(STATE.session.role)>-1;
+  return '<div class="card section recon '+state+'">'+
+    '<div class="card-head"><h3>'+t('reconTitle')+'</h3>'+
+      (canAdd?'<button class="btn btn-primary btn-sm" data-action="open-recon" data-branch="'+(branchId||'')+'">'+icon('plus')+t('reconAdd')+'</button>':'')+
+    '</div>'+
+    '<div class="card-body" style="padding-top:16px">'+
+      (r.hasSystem
+        ? '<div class="recon-grid">'+
+            '<div><span>'+t('reconSystem')+'</span><b class="mono">'+fmtMoney(r.sys)+'</b></div>'+
+            '<div><span>'+t('reconEntered')+'</span><b class="mono">'+fmtMoney(r.entered)+'</b></div>'+
+            '<div class="recon-diff"><span>'+t('reconDiff')+'</span>'+
+              '<b class="mono">'+(r.diff>0?'+':'')+fmtMoney(r.diff)+'</b>'+
+              '<em>'+label+'</em></div>'+
+          '</div>'
+        : '<div class="hint" style="padding:6px 0 10px">'+t('reconNone')+'</div>')+
+      '<div class="hint">'+t('reconNoteHint')+'</div>'+
+    '</div></div>';
+}
+function openReconSheet(branchId){
+  var scope = branchId ? [branchId] : billsScope();
+  var branchOpts=scope.map(function(id){ return '<option value="'+id+'">'+esc(branchName(id))+'</option>'; }).join('');
+  var today=new Date().toISOString().slice(0,10);
+  var body='<form id="recon-form">'+
+    (scope.length>1?'<div class="field"><label>'+t('chooseBranch')+'</label><select name="branchId">'+branchOpts+'</select></div>':'')+
+    '<div class="field"><label>'+t('reconDate')+'</label><input type="date" name="dateKey" required value="'+today+'"></div>'+
+    '<div class="field"><label>'+t('reconTotal')+'</label><div class="amt-input"><input type="number" step="0.01" min="0" name="systemTotal" required placeholder="0"><span class="cur">'+t('sar')+'</span></div></div>'+
+    '<div class="field"><label>'+t('note')+'</label><textarea name="note" placeholder="'+t('notePh')+'"></textarea></div>'+
+    '<button type="submit" class="btn btn-primary btn-block">'+icon('check')+t('save')+'</button></form>';
+  openSheet(t('reconAdd'),body,function(overlay){
+    overlay.querySelector('#recon-form').onsubmit=async function(ev){
+      ev.preventDefault();
+      var fd=new FormData(ev.target);
+      var total=Number(fd.get('systemTotal'));
+      var bid=fd.get('branchId')||scope[0];
+      var dk=fd.get('dateKey');
+      if(!(total>=0)||!dk){ toast(t('errFill'),'err'); return; }
+      /* branch+date is the identity, so correcting a day replaces it. */
+      await Store.set('systemSales', bid+'|'+dk, {
+        branchId:bid, dateKey:dk, systemTotal:total,
+        note:(fd.get('note')||'').trim(),
+        staffId:STATE.session.id, staffName:STATE.session.name,
+        createdAt:new Date().toISOString()
+      });
+      closeSheet(); toast(t('reconSaved'));
+    };
+  });
+}
+
+/* ===================== GLOBAL DATE FILTER =====================
+   One period selector drives every list and figure that is time-based, for
+   every role. Balances that must be lifetime totals — cash on hand, petty
+   cash, bills outstanding — deliberately ignore it. */
+function loadRange(){
+  try{ var r=JSON.parse(localStorage.getItem('wins_range')||'null'); if(r&&r.key) return r; }catch(e){}
+  return {key:'today',from:null,to:null};
+}
+function saveRange(){ try{ localStorage.setItem('wins_range',JSON.stringify(STATE.range)); }catch(e){} }
+function rangeLabel(){
+  var r=STATE.range;
+  if(r.key==='custom'&&r.from&&r.to) return fmtDay(r.from)+' → '+fmtDay(r.to);
+  return t({today:'fToday',yesterday:'fYesterday',week:'fWeek',month:'fMonth',all:'fAll'}[r.key]||'fToday');
+}
+function inRange(iso){
+  var r=STATE.range;
+  if(!iso) return r.key==='all';
+  if(r.key==='all') return true;
+  var d=new Date(iso), now=new Date();
+  if(r.key==='today') return d.toDateString()===now.toDateString();
+  if(r.key==='yesterday'){ var y=new Date(now); y.setDate(y.getDate()-1); return d.toDateString()===y.toDateString(); }
+  if(r.key==='week') return (now-d)<7*86400000 && d<=now;
+  if(r.key==='month') return d.getMonth()===now.getMonth() && d.getFullYear()===now.getFullYear();
+  if(r.key==='custom'){
+    if(!r.from||!r.to) return true;
+    var a=new Date(r.from); a.setHours(0,0,0,0);
+    var b=new Date(r.to);   b.setHours(23,59,59,999);
+    return d>=a && d<=b;
+  }
+  return true;
+}
+function filterBar(){
+  var keys=[['today','fToday'],['yesterday','fYesterday'],['week','fWeek'],['month','fMonth'],['all','fAll']];
+  var r=STATE.range;
+  return '<div class="filter-bar">'+
+    '<span class="fb-label">'+t('fRange')+'</span>'+
+    keys.map(function(k){
+      return '<button class="fchip'+(r.key===k[0]?' on':'')+'" data-action="set-range" data-key="'+k[0]+'">'+t(k[1])+'</button>';
+    }).join('')+
+    '<button class="fchip'+(r.key==='custom'?' on':'')+'" data-action="open-range">'+icon('clock','ic-s')+
+      (r.key==='custom'&&r.from&&r.to?'<span class="fb-range">'+rangeLabel()+'</span>':t('fCustom'))+'</button>'+
+  '</div>';
+}
+function openRangeSheet(){
+  var r=STATE.range, today=new Date().toISOString().slice(0,10);
+  var body='<div class="grid2">'+
+      '<div class="field"><label>'+t('fFrom')+'</label><input type="date" id="r-from" value="'+(r.from||today)+'"></div>'+
+      '<div class="field"><label>'+t('fTo')+'</label><input type="date" id="r-to" value="'+(r.to||today)+'"></div>'+
+    '</div>'+
+    '<button class="btn btn-primary btn-block" id="r-apply">'+icon('check')+t('fApply')+'</button>';
+  openSheet(t('fCustom'),body,function(overlay){
+    overlay.querySelector('#r-apply').onclick=function(){
+      var f=overlay.querySelector('#r-from').value, to=overlay.querySelector('#r-to').value;
+      if(!f||!to){ toast(t('errFill'),'err'); return; }
+      if(new Date(f)>new Date(to)){ var sw=f; f=to; to=sw; }
+      STATE.range={key:'custom',from:f,to:to}; saveRange();
+      closeSheet(); renderView();
+    };
+  });
+}
+
+/* ===================== BILL NOTIFICATIONS =====================
+   Fires a device notification when a bill is overdue or falls due within
+   REMIND_DAYS. Shown at most once per day per device so it never nags.
+   Email reminders are sent separately by the Apps Script daily trigger. */
+var REMIND_DAYS = 5;
+function notifSupported(){ return typeof Notification !== 'undefined'; }
+function notifState(){ return notifSupported() ? Notification.permission : 'unsupported'; }
+async function enableNotifications(){
+  if(!notifSupported()) return 'unsupported';
+  if(Notification.permission === 'granted') return 'granted';
+  try{ return await Notification.requestPermission(); }catch(e){ return 'denied'; }
+}
+function billsDueWithin(days){
+  return billsFor().filter(function(b){
+    if(b.status==='paid') return false;
+    var d=daysUntil(b.dueDate);
+    return d!==null && d<=days;
+  });
+}
+function maybeNotifyBills(){
+  if(!notifSupported() || Notification.permission!=='granted') return;
+  var today=new Date().toISOString().slice(0,10);
+  var key='wins_notified_'+(STATE.session?STATE.session.id:'x');
+  try{ if(localStorage.getItem(key)===today) return; }catch(e){}
+  var due=billsDueWithin(REMIND_DAYS);
+  if(!due.length) return;
+  var overdue=due.filter(function(b){ return daysUntil(b.dueDate)<0; });
+  var body = overdue.length
+    ? t('notifBodyOverdue').replace('{n}', overdue.length)
+    : t('notifBodySoon').replace('{n}', due.length).replace('{d}', REMIND_DAYS);
+  try{
+    new Notification(t('notifTitle'), {
+      body: body,
+      icon: 'icon-192.png',
+      badge: 'favicon-64.png',
+      tag: 'wins-bills'
+    });
+    localStorage.setItem(key, today);
+  }catch(e){}
+}
+
 /* ===================== ALWAYS-ON TOTALS STRIP =====================
    A sticky summary under the app bar, shown on every tab for every role, so
    the figure that matters is never more than a glance away. */
+/* Time-based metrics carry the active period so a figure is never read
+   against the wrong dates. */
+function rlbl(key){ return t(key)+' · '+rangeLabel(); }
 function totalItem(label,value,cls,isCount){
   return '<div class="tot '+(cls||'')+'">'+
     '<span>'+label+'</span>'+
     '<b class="mono">'+(isCount?value:fmtMoney(value))+(isCount?'':' <i>'+t('sar')+'</i>')+'</b>'+
   '</div>';
+}
+function bellHtml(){
+  if(!STATE.session) return '';
+  var n=billsDueWithin(REMIND_DAYS).length;
+  if(!n) return '';
+  var on = notifState()==='granted';
+  return '<button class="topbar-bell'+(on?' on':'')+'" data-action="toggle-notif" aria-label="'+t('notifEnable')+'">'+
+    icon('alert','ic-s')+'<i>'+n+'</i></button>';
 }
 function totalsStrip(){
   if(!STATE.session) return '';
@@ -1425,10 +1710,12 @@ function totalsStrip(){
   if(r==='manager'){
     var b=STATE.session.branchId;
     out= totalItem(t('cashOnHand'), cashOnHand(b), 'accent')
-       + totalItem(t('totRevenue'), sumSalesByType(b,'today',null))
-       + totalItem(t('todayExpenses'), sumExpenses(b,'today'))
-       + totalItem(t('totHospitality'), sumSalesByType(b,'today','hospitality'), 'violet')
-       + totalItem(t('totUnpaidBills'), unpaidBills, unpaidBills>0?'warn':'');
+       + totalItem(rlbl('totRevenue'), sumSalesByType(b,'range',null))
+       + totalItem(rlbl('totExpenses'), sumExpenses(b,'range'))
+       + totalItem(rlbl('totHospitality'), sumSalesByType(b,'range','hospitality'), 'violet')
+       + totalItem(t('totUnpaidBills'), unpaidBills, unpaidBills>0?'warn':'')
+       + (function(){ var rc=reconFor(STATE.session.branchId);
+            return rc.hasSystem ? totalItem(t('reconDiff'), rc.diff, rc.diff===0?'':'warn') : ''; })();
   } else if(r==='collector'){
     var pend=scopeToMyCollectorBranches(handoversFor(null).filter(function(h){return h.status==='pending';}));
     var held=handoversFor(null).filter(function(h){return h.status==='collected' && h.collectorId===STATE.session.id;});
@@ -1444,18 +1731,22 @@ function totalsStrip(){
   } else if(r==='area'){
     var mine=branchesForArea(STATE.session.name); if(!mine.length) mine=allBranchIds();
     out= totalItem(t('myBranches'), mine.length, '', true)
-       + totalItem(t('totRevenue'), mine.reduce(function(a,id){return a+sumSalesByType(id,'today',null);},0))
+       + totalItem(rlbl('totRevenue'), mine.reduce(function(a,id){return a+sumSalesByType(id,'range',null);},0))
        + totalItem(t('cashOnHand'), mine.reduce(function(a,id){return a+cashOnHand(id);},0), 'accent')
-       + totalItem(t('todayExpenses'), mine.reduce(function(a,id){return a+sumExpenses(id,'today');},0));
+       + totalItem(rlbl('totExpenses'), mine.reduce(function(a,id){return a+sumExpenses(id,'range');},0));
   } else {
     var transit=Object.keys(STATE.data.handovers).map(function(id){return STATE.data.handovers[id];})
       .filter(function(h){return h.status!=='confirmed';})
       .reduce(function(a,h){return a+Number(h.declaredAmount||0);},0);
     out= totalItem(t('totBranches'), allBranchIds().length, '', true)
-       + totalItem(t('totNetwork'), sumSalesByType(null,'today',null), 'accent')
+       + totalItem(rlbl('totNetwork'), sumSalesByType(null,'range',null), 'accent')
        + totalItem(t('networkCashTransit'), transit, 'warn')
        + totalItem(t('networkConfirmed'), treasuryInflow())
-       + totalItem(t('totUnpaidBills'), unpaidBills, unpaidBills>0?'warn':'');
+       + totalItem(t('totUnpaidBills'), unpaidBills, unpaidBills>0?'warn':'')
+       + (function(){
+            var bad=allBranchIds().filter(function(id){ var rc=reconFor(id); return rc.hasSystem && rc.diff!==0; });
+            return bad.length ? totalItem(t('reconBranches'), bad.length, 'warn', true) : '';
+          })();
   }
   return '<div class="totals-strip">'+out+'</div>';
 }
@@ -1474,7 +1765,9 @@ function renderView(){
   else if(STATE.tab==='admin') html=renderAdmin();
   v.innerHTML=html;
   var tot=document.getElementById('totals');
-  if(tot) tot.innerHTML=totalsStrip();
+  if(tot) tot.innerHTML=filterBar()+totalsStrip();
+  var bs=document.getElementById('bell-slot');
+  if(bs) bs.innerHTML=bellHtml();
   updateTopbar();
   // animate kpi counters
   v.querySelectorAll('[data-count]').forEach(function(el){ animateValue(el, Number(el.getAttribute('data-count'))); });
@@ -1495,15 +1788,14 @@ function renderDashboard(role){
 
 function dashManager(){
   var bId=STATE.session.branchId;
-  var cash=sumSalesByType(bId,'today','cash'), pos=sumSalesByType(bId,'today','pos'), other=sumSalesByType(bId,'today','other');
-  var totalToday=cash+pos+other, exp=sumExpenses(bId,'today');
+  var totalToday=sumSalesByType(bId,'range',null), exp=sumExpenses(bId,'range');
   var onHand=cashOnHand(bId);
-  var recent=[].concat(salesFor(bId,'week').map(function(s){return Object.assign({kind:'sale'},s);}),expensesFor(bId,'week').map(function(e){return Object.assign({kind:'expense'},e);}))
+  var recent=[].concat(salesFor(bId,'range').map(function(s){return Object.assign({kind:'sale'},s);}),expensesFor(bId,'range').map(function(e){return Object.assign({kind:'expense'},e);}))
     .sort(function(a,b){return new Date(b.createdAt)-new Date(a.createdAt);}).slice(0,8);
   var html='<div class="kpi-grid stagger">'+
     kpi(t('cashOnHand'),onHand,'accent',t('cashFormula'))+
-    kpi(t('todaySales'),totalToday,'',t('sar'))+
-    kpi(t('todayExpenses'),exp,'',t('sar'))+
+    kpi(rlbl('totRevenue'),totalToday,'',t('sar'))+
+    kpi(rlbl('totExpenses'),exp,'',t('sar'))+
     '</div>';
   html+='<div class="section"><div class="section-title">'+t('recentActivity')+'</div><div class="card"><div class="card-body">'+
     (recent.length?recent.map(activityRow).join(''):emptyState('clock',t('noSalesYet'),t('startAdding')))+
@@ -1547,13 +1839,13 @@ function dashArea(){
   if(!myBranches.length){
     return '<div class="card" style="padding:18px;margin-bottom:16px">'+emptyState('building',t('myBranches'),t('noAreaBranches'))+'</div>'+dashAdmin();
   }
-  var salesToday=myBranches.reduce(function(a,id){return a+sumSalesByType(id,'today',null);},0);
-  var expToday=myBranches.reduce(function(a,id){return a+sumExpenses(id,'today');},0);
+  var salesToday=myBranches.reduce(function(a,id){return a+sumSalesByType(id,'range',null);},0);
+  var expToday=myBranches.reduce(function(a,id){return a+sumExpenses(id,'range');},0);
   var cashHeld=myBranches.reduce(function(a,id){return a+cashOnHand(id);},0);
   var html='<div class="kpi-grid stagger">'+
     kpi(t('myBranches'),myBranches.length,'',null,true)+
-    kpi(t('todaySales'),salesToday,'',t('sar'))+
-    kpi(t('todayExpenses'),expToday,'',t('sar'))+
+    kpi(rlbl('totRevenue'),salesToday,'',t('sar'))+
+    kpi(rlbl('totExpenses'),expToday,'',t('sar'))+
     kpi(t('cashOnHand'),cashHeld,'accent',t('sar'))+
   '</div>';
   html+='<div class="section"><div class="section-title">'+t('branchPerf')+'</div><div class="card"><div class="card-body" style="padding-top:12px">'+branchPerfTable(scope)+'</div></div></div>';
@@ -1561,12 +1853,12 @@ function dashArea(){
 }
 function dashAdmin(){
   var branches=allBranchIds();
-  var totalSales=sumSalesByType(null,'today',null);
+  var totalSales=sumSalesByType(null,'range',null);
   var transit=Object.keys(STATE.data.handovers).map(function(id){return STATE.data.handovers[id];}).filter(function(h){return h.status!=='confirmed';}).reduce(function(a,h){return a+Number(h.declaredAmount||0);},0);
   var confMonth=Object.keys(STATE.data.handovers).map(function(id){return STATE.data.handovers[id];}).filter(function(h){return h.status==='confirmed';}).reduce(function(a,h){return a+Number(h.confirmedAmount||0);},0);
   var html='<div class="kpi-grid stagger">'+
     kpi(t('totalBranches'),branches.length,'',null,true)+
-    kpi(t('todaySales'),totalSales,'',t('sar'))+
+    kpi(rlbl('totNetwork'),totalSales,'',t('sar'))+
     kpi(t('networkCashTransit'),transit,'gold',t('sar'))+
     kpi(t('networkConfirmed'),confMonth,'accent',t('sar'))+
   '</div>';
@@ -1580,18 +1872,22 @@ function kpi(label,value,cls,suffix,isCount){
 }
 function branchPerfTable(filterIds){
   var rows=(filterIds||allBranchIds()).map(function(id){
-    var s=sumSalesByType(id,'week',null), e=sumExpenses(id,'week'), net=s-e;
-    return {id:id,name:branchName(id),city:cityName(STATE.data.branches[id].cityId),s:s,e:e,net:net};
+    var s=sumSalesByType(id,'range',null), e=sumExpenses(id,'range'), net=s-e;
+    var rc=reconFor(id);
+    return {id:id,name:branchName(id),city:cityName(STATE.data.branches[id].cityId),s:s,e:e,net:net,diff:rc.hasSystem?rc.diff:null};
   }).sort(function(a,b){return b.s-a.s;});
   if(!rows.length) return emptyState('building',STATE.lang==='ar'?'لا توجد فروع بعد':'No branches yet','');
   var maxS=Math.max.apply(null,rows.map(function(r){return r.s;}).concat([1]));
-  return '<div class="table-scroll"><table class="datatable"><thead><tr><th>'+t('manageBranches')+'</th><th>'+t('sales')+' ('+t('period_week')+')</th><th></th><th>'+t('expenses')+'</th><th>'+t('netCash')+'</th></tr></thead><tbody>'+
+  return '<div class="table-scroll"><table class="datatable"><thead><tr><th>'+t('manageBranches')+'</th><th>'+t('sales')+' ('+rangeLabel()+')</th><th></th><th>'+t('expenses')+'</th><th>'+t('netCash')+'</th><th>'+t('reconDiff')+'</th></tr></thead><tbody>'+
     rows.map(function(r){
       return '<tr><td><b>'+esc(r.name)+'</b><div class="hint">'+esc(r.city)+'</div></td>'+
         '<td class="mono">'+fmtMoney(r.s)+'</td>'+
         '<td style="min-width:90px"><div class="bar-track"><div class="bar-fill" style="width:'+Math.round(r.s/maxS*100)+'%"></div></div></td>'+
         '<td class="mono">'+fmtMoney(r.e)+'</td>'+
-        '<td class="mono" style="color:var(--accent);font-weight:700">'+fmtMoney(r.net)+'</td></tr>';
+        '<td class="mono" style="color:var(--accent);font-weight:700">'+fmtMoney(r.net)+'</td>'+
+        '<td class="mono">'+(r.diff===null?'<span class="no">—</span>'
+          :(r.diff===0?'<span class="recon-ok">0</span>'
+          :'<span class="recon-bad">'+(r.diff>0?'+':'')+fmtMoney(r.diff)+'</span>'))+'</td></tr>';
     }).join('')+
   '</tbody></table></div>';
 }
@@ -1608,11 +1904,12 @@ function emptyState(ic,title,sub){
 /* ===================== SALES TAB ===================== */
 function renderSales(){
   var bId=STATE.session.branchId;
-  var list=salesFor(bId,'all').sort(function(a,b){return new Date(b.createdAt)-new Date(a.createdAt);});
+  var list=salesFor(bId,'range').sort(function(a,b){return new Date(b.createdAt)-new Date(a.createdAt);});
   var totalToday=sumSalesByType(bId,'today',null);
   var html='<div class="kpi-grid stagger">'+
     PAY_TYPES.map(function(pt){ return payKpi(pt.id,bId); }).join('')+
   '</div>';
+  html+=reconCard(bId);
   html+='<div class="section"><div class="card"><div class="card-head"><h3>'+t('salesLog')+'</h3><button class="btn btn-primary btn-sm" data-action="open-sale">'+icon('plus')+t('addSale')+'</button></div><div class="card-body">'+
     (list.length? list.map(saleRow).join('') : emptyState('sales',t('noSalesYet'),t('startAdding')))+
   '</div></div></div>';
@@ -1620,7 +1917,7 @@ function renderSales(){
   return html;
 }
 function payKpi(type,bId){
-  var v=sumSalesByType(bId,'today',type);
+  var v=sumSalesByType(bId,'range',type);
   var icons={pos:'bank',cash:'wallet',other:'wallet',hospitality:'user'};
   return '<div class="kpi"><div class="lbl">'+icon(icons[type])+' '+catLabel(PAY_TYPES,type)+'</div><div class="val"><span class="mono" data-count="'+v+'">0</span></div></div>';
 }
@@ -1634,18 +1931,18 @@ function renderExpenses(){
   var bId=STATE.session.branchId;
   var list, totalToday, html;
   if(isTreasury){
-    list=treasuryExpenses('all').sort(function(a,b){return new Date(b.createdAt)-new Date(a.createdAt);});
-    totalToday=treasuryExpenses('today').reduce(function(a,e){return a+Number(e.amount||0);},0);
+    list=treasuryExpenses('range').sort(function(a,b){return new Date(b.createdAt)-new Date(a.createdAt);});
+    totalToday=treasuryExpenses('range').reduce(function(a,e){return a+Number(e.amount||0);},0);
     html='<div class="kpi-grid stagger">'+
       kpi(t('pettyCash'),treasuryPettyCash(),'accent',t('pettyCashFormula'))+
-      kpi(t('todayExpenses'),totalToday,'',t('sar'))+
+      kpi(rlbl('totExpenses'),totalToday,'',t('sar'))+
       kpi(t('treasuryInflow'),treasuryInflow(),'',t('sar'))+
     '</div>';
   } else {
-    list=expensesFor(bId,'all').sort(function(a,b){return new Date(b.createdAt)-new Date(a.createdAt);});
-    totalToday=sumExpenses(bId,'today');
+    list=expensesFor(bId,'range').sort(function(a,b){return new Date(b.createdAt)-new Date(a.createdAt);});
+    totalToday=sumExpenses(bId,'range');
     html='<div class="kpi-grid stagger">'+
-      kpi(t('todayExpenses'),totalToday,'',t('sar'))+
+      kpi(rlbl('totExpenses'),totalToday,'',t('sar'))+
       kpi(t('cashOnHand'),cashOnHand(bId),'accent',t('cashFormula'))+
     '</div>';
   }
@@ -1989,14 +2286,20 @@ function openPayBillSheet(id){
           staffId:STATE.session.id,staffName:STATE.session.name,
           createdAt:now,dateKey:now.slice(0,10),billId:id});
       }
+      var nextDue=null;
       if(overlay.querySelector('#pay-next').checked){
         var nxt=new Date(b.dueDate); nxt.setMonth(nxt.getMonth()+1);
+        nextDue=nxt.toISOString().slice(0,10);
         await Store.add('bills',{branchId:b.branchId,type:b.type,provider:b.provider||'',
           accountNo:b.accountNo||'',amount:b.amount||amt,issueDate:null,
-          dueDate:nxt.toISOString().slice(0,10),note:'',status:'unpaid',
+          dueDate:nextDue,note:'',status:'unpaid',
           createdBy:STATE.session.id,createdByName:STATE.session.name,createdAt:now});
       }
-      closeSheet(); toast(t('billPaid'));
+      closeSheet();
+      toast(t('billPaid'));
+      /* Say the next invoice exists and when it is due, so the recurring
+         chain is visible rather than something the user has to trust. */
+      if(nextDue) setTimeout(function(){ toast(t('nextCreated')+' — '+fmtDay(nextDue)); }, 900);
     };
   });
 }
@@ -2332,6 +2635,18 @@ document.addEventListener('click', function(e){
   }
   else if(action==='open-sale'){ openSaleSheet(); }
   else if(action==='open-expense'){ openExpenseSheet(); }
+  else if(action==='set-range'){
+    STATE.range={key:el.getAttribute('data-key'),from:null,to:null}; saveRange(); renderView();
+  }
+  else if(action==='open-range'){ openRangeSheet(); }
+  else if(action==='toggle-notif'){
+    enableNotifications().then(function(st){
+      if(st==='granted'){ toast(t('notifOn')); maybeNotifyBills(); renderShell(); }
+      else if(st==='denied'){ toast(t('notifBlocked'),'err'); }
+      STATE.tab='bills'; renderShell();
+    });
+  }
+  else if(action==='open-recon'){ openReconSheet(el.getAttribute('data-branch')||null); }
   else if(action==='open-bill'){ openBillSheet(); }
   else if(action==='open-pay-bill'){ openPayBillSheet(el.getAttribute('data-id')); }
   else if(action==='open-handover'){ if(!el.hasAttribute('disabled')) openHandoverSheet(); }
@@ -2386,7 +2701,7 @@ function installAppIcon(){
 async function boot(){
   installAppIcon();
   await Store.init();
-  ['cities','branches','staff','sales','expenses','handovers','bills'].forEach(function(col){
+  ['cities','branches','staff','sales','expenses','handovers','bills','systemSales'].forEach(function(col){
     Store.onCollection(col, function(data){
       STATE.data[col]=data;
       STATE.loaded[col]=true;
@@ -2409,6 +2724,7 @@ async function boot(){
   setTimeout(function(){
     document.getElementById('app').hidden=false;
     renderShell();
+    setTimeout(maybeNotifyBills, 2500);
   }, Math.min(400,SPLASH));
   setTimeout(function(){
     if(!gate) return;
