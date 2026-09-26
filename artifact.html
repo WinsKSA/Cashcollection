@@ -16,6 +16,10 @@
   --mint-2:#37F5C0;
   --mint-deep:#00A876;
   --mint-soft:rgba(0,230,162,.13);
+  /* Official WINS brand gold — the logo is always rendered in this colour
+     and is never recoloured or restyled. */
+  --brand:#C9A04D;
+  --brand-lift:#E4BE72;
   --gold:#FFC46B;
   --gold-soft:rgba(255,196,107,.14);
   --violet:#8B7BFF;
@@ -72,25 +76,38 @@ button{font-family:inherit}
 #loading-gate.out{opacity:0;visibility:hidden}
 .splash-halo{
   position:absolute;width:min(78vw,380px);aspect-ratio:1;border-radius:50%;pointer-events:none;
-  background:radial-gradient(circle,rgba(0,230,162,.28),rgba(0,230,162,.06) 45%,transparent 68%);
+  background:radial-gradient(circle,rgba(201,160,77,.30),rgba(201,160,77,.07) 45%,transparent 68%);
   animation:splashHalo 5s ease-in-out both;
 }
-.boot-logo{width:min(46vw,188px);color:var(--mint);animation:splashMark 5s cubic-bezier(.16,1,.3,1) both}
-.boot-word{width:min(34vw,136px);color:var(--ink);animation:splashWord 5s ease both}
-@keyframes splashMark{
-  0%{opacity:0;transform:scale(.28) rotate(0deg)}
-  14%{opacity:1}
-  32%{opacity:1;transform:scale(1.07) rotate(360deg)}
-  42%{transform:scale(1) rotate(360deg)}
-  80%{opacity:1;transform:scale(1) rotate(360deg)}
-  100%{opacity:0;transform:scale(1.35) rotate(360deg)}
+.boot-logo{width:min(52vw,210px);color:var(--brand)}
+.boot-word{width:min(38vw,152px);color:var(--brand)}
+/* Every glyph of the mark and every letter of the wordmark animates on its
+   own timeline: fades in one by one, holds, then fades out one by one.
+   --din / --dout are set per glyph inline. */
+.glyph{animation:glyphIn .75s cubic-bezier(.16,1,.3,1) both var(--din,0s),
+                 glyphOut .6s ease-in both var(--dout,4s)}
+@keyframes glyphIn{
+  from{opacity:0;transform:translateY(16px) scale(.72)}
+  to{opacity:1;transform:none}
 }
-@keyframes splashWord{
-  0%,26%{opacity:0;transform:translateY(16px)}
-  46%{opacity:1;transform:none}
-  80%{opacity:1;transform:none}
-  100%{opacity:0;transform:translateY(-12px)}
+@keyframes glyphOut{
+  from{opacity:1;transform:none}
+  to{opacity:0;transform:translateY(-14px) scale(1.14)}
 }
+.splash-welcome{
+  margin-top:8px;text-align:center;
+  animation:welcomeIn .9s cubic-bezier(.16,1,.3,1) both 2.35s,
+            glyphOut .55s ease-in both 4.05s;
+}
+.splash-welcome b{
+  display:block;font-size:clamp(17px,4.4vw,23px);font-weight:800;letter-spacing:.01em;
+  background:linear-gradient(100deg,var(--brand) 12%,var(--brand-lift) 45%,var(--brand) 78%);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  background-size:220% 100%;animation:shimmer 2.8s ease-in-out infinite;
+}
+.splash-welcome span{display:block;margin-top:7px;font-size:12.5px;color:var(--ink-faint);letter-spacing:.14em}
+@keyframes welcomeIn{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+@keyframes shimmer{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
 @keyframes splashHalo{
   0%{opacity:0;transform:scale(.4)}
   38%{opacity:1;transform:scale(1)}
@@ -98,12 +115,47 @@ button{font-family:inherit}
   100%{opacity:0;transform:scale(1.45)}
 }
 @media (prefers-reduced-motion:reduce){
-  .boot-logo,.boot-word,.splash-halo{animation:none!important;opacity:1!important}
+  .boot-logo,.boot-word,.splash-halo,.glyph,.splash-welcome{animation:none!important;opacity:1!important;transform:none!important}
 }
+
+/* ---------- welcome gate (after sign-in) ---------- */
+.welcome-gate{
+  position:fixed;inset:0;z-index:400;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:20px;background:var(--void);
+  transition:opacity .6s ease,visibility .6s;
+}
+.welcome-gate.out{opacity:0;visibility:hidden}
+.welcome-halo{
+  position:absolute;width:min(84vw,420px);aspect-ratio:1;border-radius:50%;pointer-events:none;
+  background:radial-gradient(circle,rgba(201,160,77,.26),rgba(201,160,77,.05) 48%,transparent 70%);
+  animation:welcomeHalo 2.9s ease-in-out both;
+}
+@keyframes welcomeHalo{0%{opacity:0;transform:scale(.55)}45%{opacity:1;transform:scale(1)}100%{opacity:.85;transform:scale(1.1)}}
+.welcome-mark{width:min(34vw,128px);color:var(--brand);animation:wcMark .95s cubic-bezier(.16,1,.3,1) both}
+@keyframes wcMark{0%{opacity:0;transform:scale(.5) rotate(-14deg)}100%{opacity:1;transform:none}}
+.welcome-copy{text-align:center;position:relative}
+.wc-hi{display:block;font-size:13px;color:var(--ink-faint);letter-spacing:.16em;
+  animation:welcomeIn .7s cubic-bezier(.16,1,.3,1) both .45s}
+.wc-name{display:block;margin-top:6px;font-family:var(--font-display);font-weight:900;
+  font-size:clamp(24px,6.4vw,36px);letter-spacing:-.01em;
+  background:linear-gradient(100deg,var(--brand) 10%,var(--brand-lift) 48%,var(--brand) 82%);
+  -webkit-background-clip:text;background-clip:text;color:transparent;background-size:220% 100%;
+  animation:welcomeIn .8s cubic-bezier(.16,1,.3,1) both .6s, shimmer 2.6s ease-in-out infinite .6s}
+.wc-role{display:block;margin-top:9px;font-size:13px;color:var(--ink-dim);
+  animation:welcomeIn .7s cubic-bezier(.16,1,.3,1) both .78s}
+.welcome-bar{width:150px;height:3px;border-radius:99px;background:rgba(255,255,255,.08);overflow:hidden;
+  animation:welcomeIn .5s ease both .95s}
+.welcome-bar i{display:block;height:100%;width:100%;border-radius:99px;transform-origin:0 50%;
+  background:linear-gradient(90deg,var(--brand),var(--brand-lift));
+  animation:wcFill 1.5s cubic-bezier(.4,0,.2,1) both .95s}
+@keyframes wcFill{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+.wc-ready{font-size:11.5px;color:var(--ink-faint);letter-spacing:.1em;
+  animation:welcomeIn .6s ease both 1.1s}
+[dir="rtl"] .welcome-bar i{transform-origin:100% 50%}
 
 /* ---------- logo ---------- */
 .logo-mark,.logo-word,.logo-lock{display:block;fill:currentColor}
-.logo-glow{filter:drop-shadow(0 0 22px rgba(0,230,162,.45))}
+.logo-glow{filter:drop-shadow(0 0 22px rgba(201,160,77,.5))}
 
 /* ---------- app shell ---------- */
 #app{position:relative;z-index:1;min-height:100%;display:flex}
@@ -115,9 +167,9 @@ button{font-family:inherit}
   border-inline-end:1px solid var(--line);
 }
 .brand{display:flex;align-items:center;gap:12px;padding:4px 8px 0}
-.brand .logo-mark{width:42px;color:var(--mint)}
+.brand .logo-mark{width:42px;color:var(--brand)}
 .brand-text{display:flex;flex-direction:column;gap:3px;line-height:1}
-.brand-text .logo-word{width:64px;color:var(--ink);opacity:.95}
+.brand-text .logo-word{width:64px;color:var(--brand);opacity:.95}
 .brand-text span{font-size:9.5px;color:var(--ink-faint);letter-spacing:.22em;text-transform:uppercase;font-weight:700}
 
 .navlist{display:flex;flex-direction:column;gap:4px}
@@ -432,8 +484,8 @@ button{font-family:inherit}
 @keyframes loginIn{from{opacity:0;transform:translateY(24px) scale(.96)}to{opacity:1;transform:none}}
 .login-card::before{content:"";position:absolute;top:0;inset-inline:60px;height:1px;background:linear-gradient(90deg,transparent,rgba(0,230,162,.7),transparent)}
 .login-logo{display:flex;flex-direction:column;align-items:center;gap:16px;margin-bottom:26px}
-.login-logo .logo-mark{width:92px;color:var(--mint);animation:markIn .9s cubic-bezier(.16,1,.3,1) both .1s}
-.login-logo .logo-word{width:96px;color:var(--ink);opacity:.92;animation:fadeUp .7s cubic-bezier(.16,1,.3,1) both .3s}
+.login-logo .logo-mark{width:92px;color:var(--brand);animation:markIn .9s cubic-bezier(.16,1,.3,1) both .1s}
+.login-logo .logo-word{width:96px;color:var(--brand);opacity:.95;animation:fadeUp .7s cubic-bezier(.16,1,.3,1) both .3s}
 @keyframes markIn{from{opacity:0;transform:translateY(-10px) scale(.8) rotate(-6deg)}to{opacity:1;transform:none}}
 .login-logo p{margin:0;font-size:12.5px;color:var(--ink-faint);text-align:center;letter-spacing:.02em;animation:fadeUp .7s cubic-bezier(.16,1,.3,1) both .42s}
 .role-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
@@ -520,7 +572,7 @@ table.datatable tbody tr:hover{background:rgba(255,255,255,.025)}
 
   /* ---- app bar ---- */
   .topbar{padding:10px 16px calc(10px);gap:10px}
-  .topbar-logo{display:flex!important;width:30px;flex:none;color:var(--mint)}
+  .topbar-logo{display:flex!important;width:30px;flex:none;color:var(--brand)}
   .topbar h2{font-size:17px}
   .topbar .sub{font-size:10.5px}
   .kpi-grid{gap:11px;margin-bottom:18px}
@@ -735,6 +787,10 @@ optional:{ar:"اختياري",en:"Optional"},
 switchRole:{ar:"تبديل الدور",en:"Switch role"},
 roleSwitched:{ar:"تم تبديل الدور",en:"Role switched"},
 myAccount:{ar:"حسابي",en:"My Account"},
+welcomeTitle:{ar:"أهلاً بكم في ونس",en:"Welcome to WINS"},
+welcomeKicker:{ar:"إدارة النقدية",en:"CASH CONTROL"},
+welcomeBackName:{ar:"أهلاً بك",en:"Welcome back"},
+welcomeReady:{ar:"جاري تجهيز لوحتك...",en:"Preparing your dashboard..."},
 pettyCash:{ar:"العهدة النقدية",en:"Petty Cash"},
 pettyCashFormula:{ar:"= نقد مؤكد − مصروفات الخزينة",en:"= Confirmed cash − treasury spend"},
 treasuryInflow:{ar:"إجمالي النقد المستلم",en:"Total Cash Received"},
@@ -772,6 +828,31 @@ function catLabel(list,id){ var f=list.filter(function(x){return x.id===id});if(
 var LOGO_MARK_PATHS='<path d="M366.13 126.72L376.63 116.40L387.14 126.72L377.01 137.79ZM376.07 95.40L343.81 126.91L366.69 149.04L357.31 158.04L367.82 167.80L408.33 126.91Z"/><path d="M328.58 111.22L304.94 135.51L278.71 111.22L267.06 123.64L303.65 158.50L339.58 123.64Z"/><path d="M314.21 101.19L304.94 110.46L295.67 101.19L304.94 91.92Z"/><path d="M247.99 110.76L262.57 124.95L231.64 158.83L216.98 141.64L198.68 158.83L167.67 126.70L184.11 110.76L199.05 127.82L215.12 110.76L231.93 127.07Z"/>';
 var LOGO_WORD_PATHS='<path d="M307.09 176.48L306.73 175.57L306.25 175.17L305.25 175.17L301.91 175.18L298.57 175.11L295.24 175.06L293.22 175.03L291.21 175.00L289.20 174.95L288.00 174.91L287.65 175.56L288.06 176.52L288.52 177.60L289.26 178.54L289.74 179.61L290.26 180.79L291.11 182.10L290.98 183.26L290.21 189.99L289.25 196.71L288.19 203.40L288.02 204.49L287.07 205.49L286.39 206.47L285.78 207.34L284.87 208.03L284.40 208.96L283.75 210.26L284.36 211.35L285.80 211.57L288.92 212.05L292.05 212.20L295.17 211.46L296.64 211.11L297.97 210.42L298.50 208.93L299.00 207.49L299.15 206.09L297.89 205.09L297.36 204.66L296.92 203.64L296.99 202.90L297.14 201.38L297.36 199.87L297.59 198.36L297.73 197.48L297.66 195.35L298.37 194.71L299.00 194.14L299.73 193.45L300.49 193.35L301.47 193.23L302.10 194.95L302.40 195.63L303.03 197.08L303.77 198.49L304.50 199.89L305.44 201.68L306.41 203.46L307.41 205.22L308.29 206.76L309.09 208.77L310.54 209.85L310.83 210.06L311.09 210.31L311.37 210.53L312.70 211.62L314.58 212.24L316.29 211.84L317.65 211.53L319.31 210.60L319.44 209.05L319.59 207.10L318.39 205.24L317.70 203.50L316.85 201.33L316.00 199.17L315.14 197.00L313.44 192.68L311.74 188.35L310.04 184.02L309.05 181.50L308.07 178.99L307.09 176.48"/><path d="M366.71 190.93L365.64 190.19L364.39 189.63L363.16 189.19L360.58 188.28L357.89 187.63L355.36 186.61L354.11 186.11L352.62 185.24L352.11 184.13L351.76 183.38L351.32 182.63L351.05 181.84L350.77 180.99L350.87 180.06L350.92 179.18L351.08 176.64L349.78 173.87L346.78 174.95L346.14 175.18L345.45 175.48L345.00 175.95L343.34 177.74L341.65 179.50L340.18 181.46L339.48 182.41L338.71 183.37L338.40 184.52L338.06 185.78L337.96 187.07L338.06 188.38L338.24 190.53L338.95 192.71L340.64 194.15L341.55 194.92L342.87 195.39L343.97 195.87L345.24 196.43L346.53 196.93L347.84 197.36L349.76 198.01L351.73 198.53L353.60 199.33L354.43 199.69L355.37 200.05L355.97 200.75L356.59 201.46L356.93 202.36L357.05 203.29L357.31 205.16L357.02 207.07L357.38 208.93L357.77 210.97L358.85 211.58L360.75 210.81L364.42 209.32L367.39 206.88L369.31 203.42L371.94 198.68L370.88 193.82L366.71 190.93"/><path d="M270.31 205.90L270.63 206.33L270.93 206.77L271.13 207.34L271.31 207.86L271.49 208.41L271.49 208.97L271.50 210.07L270.61 211.01L269.64 211.42L268.64 211.84L267.51 211.81L266.45 211.81L263.52 211.80L260.59 212.01L257.66 211.96L256.74 211.94L255.36 211.60L255.04 210.98L254.71 210.34L255.13 208.85L255.73 208.27L258.66 205.47L258.26 201.74L258.73 198.28L259.30 194.17L259.75 190.04L260.06 185.90L260.18 184.34L259.77 182.74L259.55 181.16L259.49 180.69L259.23 180.24L259.07 179.78L258.15 177.08L259.17 175.32L262.00 175.02L264.13 174.79L266.29 174.76L268.43 174.73L269.74 174.70L271.08 174.66L272.34 174.92L273.96 175.26L274.30 176.09L273.72 177.62L273.54 178.12L273.36 178.68L273.02 179.07L271.06 181.35L270.61 184.07L270.41 186.96L270.05 191.88L269.50 196.78L269.04 201.70L268.93 202.76L269.03 203.85L269.56 204.80L269.79 205.21L270.05 205.55L270.31 205.90"/><path d="M222.63 203.26L222.37 201.63L221.59 200.77L220.17 200.82L216.96 200.95L215.79 198.71L216.12 196.03L216.42 193.57L217.00 191.11L217.82 188.78L218.81 185.94L219.13 183.20L218.42 180.25L218.09 178.85L218.19 177.33L218.28 175.87L218.30 175.49L219.02 174.86L219.42 174.85L223.04 174.79L226.65 174.89L230.26 174.85L231.57 174.84L232.09 175.39L231.78 176.59L231.22 178.79L230.74 181.05L229.87 183.14L228.82 185.65L228.61 188.14L229.09 190.75L230.06 195.96L231.10 201.15L231.94 206.37L232.52 209.98L230.83 211.62L227.18 211.23L226.53 211.15L225.84 210.78L225.33 210.35L224.84 209.95L224.47 209.33L224.22 208.74L223.33 206.57L222.71 203.21L222.63 203.26"/><path d="M200.17 175.02L203.89 175.04L207.61 175.22L211.32 175.22L212.71 175.23L213.12 175.83L212.72 177.00L212.04 179.00L211.15 180.95L210.49 182.96L210.07 184.27L209.58 185.68L209.66 187.01L210.15 194.73L210.80 202.44L211.41 210.15L211.49 211.13L211.17 211.56L210.15 211.52L208.67 211.46L207.19 211.39L205.72 211.49L204.29 211.59L203.41 210.95L203.11 209.68L202.37 206.53L201.66 203.37L201.10 200.18L200.23 195.23L199.53 190.26L198.67 185.31L198.49 184.28L198.17 183.10L197.50 182.36L196.10 180.80L196.75 178.95L196.40 177.26L196.33 176.95L196.46 176.47L196.68 176.26L198.69 174.36L198.91 175.01L200.17 175.02"/><path d="M323.93 202.88L324.21 202.02L324.14 200.89L324.25 199.98L324.51 197.86L324.91 195.77L325.22 193.67L325.89 189.05L326.53 184.43L328.85 180.25L329.71 178.70L329.37 177.88L327.70 177.14L324.81 175.84L321.86 175.97L318.93 176.92L317.28 177.46L316.88 178.38L317.20 180.14L318.58 187.58L319.68 195.54L323.49 202.25L323.62 202.47L323.75 202.70L323.93 202.88"/><path d="M234.64 195.42L234.75 193.11L236.14 191.06L236.76 188.86L237.33 186.87L237.29 184.78L237.19 182.73L237.10 180.87L237.36 178.99L237.55 177.13L237.66 176.11L238.33 175.75L239.38 175.77L242.18 175.84L244.98 175.84L247.77 175.80L249.10 175.77L249.62 176.52L249.36 177.60L249.06 178.90L248.73 180.44L247.86 181.34L242.87 186.50L240.88 193.19L238.25 199.56L237.96 200.26L237.41 200.86L236.99 201.50L235.59 199.88L234.61 197.82L234.63 195.65L234.63 195.57L234.63 195.50L234.64 195.42"/><path d="M349.88 210.40L349.45 210.51L349.04 210.67L348.61 210.72L345.04 211.14L341.47 211.58L337.88 211.87L337.37 211.91L336.49 211.27L336.30 210.75L335.84 209.44L335.48 208.03L335.42 206.65L335.33 204.56L337.88 203.08L339.94 204.08L342.35 205.26L344.64 206.67L346.97 208.01L348.01 208.61L349.01 209.28L350.02 209.91L349.97 210.08L349.93 210.24L349.88 210.40"/><path d="M357.58 177.95L357.80 177.67L358.62 177.64L358.99 177.64L362.14 177.65L365.29 177.68L368.44 177.72L368.89 177.72L369.39 177.72L369.78 177.90L370.88 178.41L371.41 182.20L370.65 183.79L370.03 185.09L368.13 185.53L366.86 185.09L366.23 184.88L365.69 184.48L365.16 184.09L362.97 182.49L360.78 180.88L358.59 179.27L358.30 179.06L357.49 178.52L357.53 178.09L357.53 178.04L357.55 177.99L357.58 177.95"/>';
 function logoMark(cls){ return '<svg class="logo-mark '+(cls||'')+'" viewBox="167 88 242 84" xmlns="http://www.w3.org/2000/svg" aria-label="WINS"><g fill="currentColor">'+LOGO_MARK_PATHS+'</g></svg>'; }
+
+/* ---- Splash lockup: the same official artwork, split so each glyph of the
+   mark and each letter of WINS can fade in and out on its own timeline.
+   The paths themselves are untouched. ---- */
+function splitPaths(str){ return str.match(/<path[^>]*\/>/g) || []; }
+/* Mark glyphs run right-to-left, matching how ونس reads. */
+var MARK_ORDER = [0,1,2,3];
+/* WINS letters: W is three strokes, I one, N two, S three. */
+var WORD_LETTERS = [[4,3,6],[2],[0,5],[1,7,8]];
+
+function splashLockup(){
+  var marks = splitPaths(LOGO_MARK_PATHS);
+  var words = splitPaths(LOGO_WORD_PATHS);
+  var markSvg = MARK_ORDER.map(function(idx,i){
+    return '<g class="glyph" style="--din:'+(0.15+i*0.20).toFixed(2)+'s;--dout:'+(4.30-i*0.07).toFixed(2)+'s">'+(marks[idx]||'')+'</g>';
+  }).join('');
+  var wordSvg = WORD_LETTERS.map(function(group,i){
+    return '<g class="glyph" style="--din:'+(1.05+i*0.18).toFixed(2)+'s;--dout:'+(4.00+i*0.07).toFixed(2)+'s">'+
+      group.map(function(idx){ return words[idx]||''; }).join('')+'</g>';
+  }).join('');
+  return '<svg class="boot-logo logo-glow" viewBox="167 88 242 84" xmlns="http://www.w3.org/2000/svg" aria-label="WINS"><g fill="currentColor">'+markSvg+'</g></svg>'+
+         '<svg class="boot-word" viewBox="194 171 180 44" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><g fill="currentColor">'+wordSvg+'</g></svg>'+
+         '<div class="splash-welcome"><b>'+t('welcomeTitle')+'</b><span>'+t('welcomeKicker')+'</span></div>'+
+         '<div class="splash-halo"></div>';
+}
 function logoWord(cls){ return '<svg class="logo-word '+(cls||'')+'" viewBox="194 171 180 44" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><g fill="currentColor">'+LOGO_WORD_PATHS+'</g></svg>'; }
 
 function icon(name,cls){
@@ -1628,6 +1709,7 @@ function bindLogin(){
     localStorage.setItem('wins_session',encodeURIComponent(JSON.stringify(STATE.session)));
     STATE.tab='dashboard';
     renderShell();
+    showWelcome();
   };
   var exForm=document.getElementById('existing-form');
   if(exForm) exForm.onsubmit=async function(ev){
@@ -1643,7 +1725,29 @@ function bindLogin(){
     localStorage.setItem('wins_session',encodeURIComponent(JSON.stringify(STATE.session)));
     STATE.tab='dashboard';
     renderShell();
+    showWelcome();
   };
+}
+
+/* ===================== WELCOME SEQUENCE ===================== */
+/* Shown once, right after a successful sign-in: the gold lockup, the person's
+   name and the role they are entering as, then it dissolves into the app. */
+function showWelcome(){
+  var s=STATE.session; if(!s) return;
+  var el=document.createElement('div');
+  el.className='welcome-gate';
+  el.innerHTML=
+    '<div class="welcome-halo"></div>'+
+    logoMark('welcome-mark logo-glow')+
+    '<div class="welcome-copy">'+
+      '<span class="wc-hi">'+t('welcomeBackName')+'</span>'+
+      '<b class="wc-name">'+esc(s.name)+'</b>'+
+      '<span class="wc-role">'+t('role'+cap(s.role))+(s.branchId?' · '+branchName(s.branchId):'')+'</span>'+
+    '</div>'+
+    '<div class="welcome-bar"><i></i></div>'+
+    '<div class="wc-ready">'+t('welcomeReady')+'</div>';
+  document.body.appendChild(el);
+  setTimeout(function(){ el.classList.add('out'); setTimeout(function(){ el.remove(); },650); }, 2300);
 }
 
 /* ===================== ACCOUNT MENU ===================== */
@@ -1732,7 +1836,7 @@ async function boot(){
   });
   // Splash: the logo fades in, turns a full 360, holds, then fades out into the app.
   var gate=document.getElementById('loading-gate');
-  if(gate) gate.innerHTML=logoMark('boot-logo logo-glow')+logoWord('boot-word')+'<div class="splash-halo"></div>';
+  if(gate) gate.innerHTML=splashLockup();
   var reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   var SPLASH = reduced ? 700 : 4600;
   // Render the app behind the splash so it is ready the moment the curtain lifts.
