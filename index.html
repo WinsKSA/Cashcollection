@@ -809,6 +809,21 @@ welcomeTitle:{ar:"أهلاً بكم في ونس",en:"Welcome to WINS"},
 welcomeKicker:{ar:"إدارة النقدية",en:"CASH CONTROL"},
 welcomeBackName:{ar:"أهلاً بك",en:"Welcome back"},
 welcomeReady:{ar:"جاري تجهيز لوحتك...",en:"Preparing your dashboard..."},
+integration:{ar:"الربط والمزامنة",en:"Sync & Backup"},
+sheetsTitle:{ar:"ربط جوجل شيت",en:"Google Sheets link"},
+sheetsHelp:{ar:"الصق رابط تطبيق الويب المنتهي بـ /exec. يُحفظ على هذا الجهاز فقط ولا يُرفع مع الكود.",en:"Paste the web app URL ending in /exec. It is stored on this device only and never committed with the code."},
+sheetsUrl:{ar:"رابط الربط (exec/)",en:"Endpoint URL (/exec)"},
+testConn:{ar:"اختبار الاتصال",en:"Test connection"},
+saveConn:{ar:"حفظ وتفعيل المزامنة",en:"Save & enable sync"},
+pushAll:{ar:"رفع كل البيانات الحالية",en:"Upload all current data"},
+disconnect:{ar:"إلغاء الربط",en:"Disconnect"},
+connOk:{ar:"الاتصال ناجح",en:"Connection OK"},
+connFail:{ar:"تعذر الاتصال — تحقق من الرابط والنشر",en:"Could not connect — check the URL and deployment"},
+syncedNow:{ar:"تمت المزامنة",en:"Synced"},
+uploaded:{ar:"تم رفع {n} سجل",en:"Uploaded {n} records"},
+statusLinked:{ar:"مرتبط بجوجل شيت",en:"Linked to Google Sheets"},
+statusOffline:{ar:"غير متصل — يعمل من النسخة المحفوظة",en:"Offline — using the cached copy"},
+statusLocal:{ar:"غير مرتبط — البيانات على هذا الجهاز فقط",en:"Not linked — data stays on this device"},
 pettyCash:{ar:"العهدة النقدية",en:"Petty Cash"},
 pettyCashFormula:{ar:"= نقد مؤكد − مصروفات الخزينة",en:"= Confirmed cash − treasury spend"},
 treasuryInflow:{ar:"إجمالي النقد المستلم",en:"Total Cash Received"},
@@ -905,8 +920,73 @@ function icon(name,cls){
 var Store = (function(){
   var mode='local', dbns=null, assetsns=null;
   var LS_KEY='wins_cash_local_v1';
+  var API_KEY='wins_api_url';
+  var COLS=['cities','branches','staff','sales','expenses','handovers','editRequests'];
   var local=null;
   var listeners={}; // path -> [cb]
+  var apiUrl=null, pollTimer=null, lastSig='', pendingPush=[], pushing=false;
+
+  /* ---- Google Sheets backend -------------------------------------------
+     The endpoint URL is never committed to the repository: it is supplied
+     once per device, either by pasting it in Admin > Integration or by
+     opening the app with ?api=<url>, and then kept in localStorage. */
+  function readApiUrl(){
+    try{
+      var q=new URLSearchParams(location.search).get('api');
+      if(q){ localStorage.setItem(API_KEY, q); history.replaceState({},'',location.pathname); return q; }
+      return localStorage.getItem(API_KEY)||null;
+    }catch(e){ return null; }
+  }
+  function setApiUrl(u){
+    apiUrl=u||null;
+    try{ u ? localStorage.setItem(API_KEY,u) : localStorage.removeItem(API_KEY); }catch(e){}
+  }
+  function blankDb(){ var o={}; COLS.forEach(function(c){ o[c]={}; }); return o; }
+  async function apiGet(url){
+    var r=await fetch(url,{method:'GET',redirect:'follow'});
+    var j=await r.json();
+    if(!j||!j.ok) throw new Error((j&&j.error)||'bad response');
+    return j.data;
+  }
+  /* text/plain keeps this a "simple" request: Apps Script cannot answer the
+     CORS preflight that application/json would trigger. */
+  async function apiPost(body){
+    return fetch(apiUrl,{
+      method:'POST', redirect:'follow',
+      headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body:JSON.stringify(body)
+    });
+  }
+  function queuePush(op,col,id,data){
+    if(mode!=='sheets') return;
+    pendingPush.push({op:op,collection:col,id:id,data:data});
+    flushPush();
+  }
+  async function flushPush(){
+    if(pushing||!pendingPush.length||!apiUrl) return;
+    pushing=true;
+    var batch=pendingPush.splice(0,20);
+    try{ await apiPost({op:'batch',writes:batch}); }
+    catch(e){ pendingPush=batch.concat(pendingPush); } // keep for the next attempt
+    finally{ pushing=false; if(pendingPush.length) setTimeout(flushPush,1500); }
+  }
+  function signature(db){
+    var n=''; COLS.forEach(function(c){ n+=c+':'+Object.keys(db[c]||{}).length+';'; });
+    return n+JSON.stringify(db).length;
+  }
+  async function pollOnce(){
+    if(mode!=='sheets'||pendingPush.length||pushing) return;
+    try{
+      var fresh=await apiGet(apiUrl);
+      COLS.forEach(function(c){ if(!fresh[c]) fresh[c]={}; });
+      var sig=signature(fresh);
+      if(sig!==lastSig){ lastSig=sig; local=fresh; saveLocal(); COLS.forEach(emit); }
+    }catch(e){ /* stay on the cached copy until the network returns */ }
+  }
+  function startPolling(){
+    if(pollTimer) clearInterval(pollTimer);
+    pollTimer=setInterval(pollOnce, 12000);
+  }
 
   function loadLocal(){
     try{ var raw=localStorage.getItem(LS_KEY); if(raw) return JSON.parse(decodeURIComponent(raw)); }catch(e){}
@@ -947,9 +1027,45 @@ var Store = (function(){
           assetsns = await window.claude.use('assets').catch(function(){return null;});
         }
       }catch(e){}
-      if(dbns){ mode='db'; }
-      else { mode='local'; local=loadLocal(); if(!local) seedLocal(); }
+      if(dbns){ mode='db'; return; }
+      // Google Sheets takes precedence over the offline cache when configured.
+      apiUrl=readApiUrl();
+      if(apiUrl){
+        try{
+          var remote=await apiGet(apiUrl);
+          COLS.forEach(function(c){ if(!remote[c]) remote[c]={}; });
+          local=remote; lastSig=signature(remote); saveLocal();
+          mode='sheets'; startPolling();
+          return;
+        }catch(e){
+          // Unreachable endpoint: fall back to the cached copy so the app still opens.
+          local=loadLocal()||blankDb(); mode='sheets-offline'; startPolling();
+          return;
+        }
+      }
+      mode='local'; local=loadLocal(); if(!local) seedLocal();
     },
+    apiUrl:function(){ return apiUrl; },
+    setApiUrl:setApiUrl,
+    async testApi(url){
+      var data=await apiGet(url);
+      var counts={}; COLS.forEach(function(c){ counts[c]=Object.keys(data[c]||{}).length; });
+      return counts;
+    },
+    async pushAll(){
+      if(!apiUrl) throw new Error('no endpoint');
+      var writes=[];
+      COLS.forEach(function(c){
+        Object.keys(local[c]||{}).forEach(function(id){
+          writes.push({op:'set',collection:c,id:id,data:local[c][id]});
+        });
+      });
+      for(var i=0;i<writes.length;i+=14){
+        await apiPost({op:'batch',writes:writes.slice(i,i+14)});
+      }
+      return writes.length;
+    },
+    syncNow:pollOnce,
     onCollection(col, cb){
       if(mode==='db'){
         return dbns.collection(col).onSnapshot(function(snap){
@@ -972,17 +1088,17 @@ var Store = (function(){
       } else {
         var id=genId();
         local[col][id]=data;
-        saveLocal(); emit(col);
+        saveLocal(); emit(col); queuePush('set',col,id,data);
         return id;
       }
     },
     async set(col,id,data){
       if(mode==='db'){ await dbns.doc(col+'/'+id).set(data); }
-      else { local[col][id]=data; saveLocal(); emit(col); }
+      else { local[col][id]=data; saveLocal(); emit(col); queuePush('set',col,id,data); }
     },
     async update(col,id,data){
       if(mode==='db'){ await dbns.doc(col+'/'+id).update(data); }
-      else { local[col][id]=Object.assign({},local[col][id]||{},data); saveLocal(); emit(col); }
+      else { local[col][id]=Object.assign({},local[col][id]||{},data); saveLocal(); emit(col); queuePush('set',col,id,local[col][id]); }
     },
     async uploadAsset(file){
       if(mode==='db' && assetsns){
@@ -1173,7 +1289,10 @@ function updateTopbar(){
   var pulseText=document.getElementById('pulse-text');
   if(pulseText){
     var net=Object.keys(STATE.data.handovers).length;
-    pulseText.textContent = Store.mode()==='db' ? (STATE.lang==='ar'?'مباشر':'Live') : (STATE.lang==='ar'?'محلي':'Local');
+    var m=Store.mode();
+    pulseText.textContent = (m==='db'||m==='sheets') ? (STATE.lang==='ar'?'مباشر':'Live')
+      : m==='sheets-offline' ? (STATE.lang==='ar'?'غير متصل':'Offline')
+      : (STATE.lang==='ar'?'محلي':'Local');
   }
 }
 
@@ -1197,7 +1316,7 @@ function renderView(){
 
 /* ===================== DASHBOARD ===================== */
 function renderDashboard(role){
-  if(Store.mode()==='local'){
+  if(Store.mode()==='local'||Store.mode()==='sheets-offline'){
     var banner='<div class="card fade-in" style="padding:11px 16px;margin-bottom:16px;display:flex;gap:9px;align-items:center;border-color:var(--gold);background:var(--gold-soft);color:var(--gold);font-size:12px;font-weight:700;">'+icon('alert','ic-s')+'<span>'+t('localModeBanner')+'</span></div>';
   } else banner='';
   if(role==='manager') return banner+dashManager();
@@ -1448,7 +1567,7 @@ function handoverCard(role,h){
 var adminSub='overview';
 function renderAdmin(){
   var html='<div class="tabbar">'+
-    ['overview','manageCities','manageBranches','manageStaff'].map(function(k){
+    ['overview','manageCities','manageBranches','manageStaff','integration'].map(function(k){
       var label=k==='overview'?t('networkOverview'):t(k);
       return '<button class="'+(adminSub===k?'active':'')+'" data-action="admin-sub" data-sub="'+k+'">'+label+'</button>';
     }).join('')+'</div>';
@@ -1456,6 +1575,7 @@ function renderAdmin(){
   else if(adminSub==='manageCities') html+=adminCities();
   else if(adminSub==='manageBranches') html+=adminBranches();
   else if(adminSub==='manageStaff') html+=adminStaff();
+  else if(adminSub==='integration') html+=adminIntegration();
   return html;
 }
 function adminCities(){
@@ -1475,6 +1595,25 @@ function adminStaff(){
   return '<div class="card"><div class="card-head"><h3>'+t('staffRoster')+'</h3></div><div class="card-body">'+
     (rows.length? rows.map(function(r){return '<div class="row"><div class="avatar" style="margin-inline-end:2px">'+initials(r.d.name)+'</div><div class="rmain"><b>'+esc(r.d.name)+'</b><div class="rmeta"><span class="chip">'+t('role'+cap(r.d.role))+'</span>'+(r.d.branchId?'<span>'+branchName(r.d.branchId)+'</span>':'')+'</div></div></div>';}).join('') : emptyState('user',STATE.lang==='ar'?'لا يوجد موظفون':'No staff yet',''))+
   '</div></div>';
+}
+
+function adminIntegration(){
+  var m=Store.mode(), url=Store.apiUrl()||'';
+  var status = m==='sheets' ? {cls:'confirmed', txt:t('statusLinked')}
+             : m==='sheets-offline' ? {cls:'gap', txt:t('statusOffline')}
+             : {cls:'pending', txt:t('statusLocal')};
+  return '<div class="card"><div class="card-head"><h3>'+t('sheetsTitle')+'</h3><div class="pill '+status.cls+'">'+status.txt+'</div></div>'+
+    '<div class="card-body" style="padding-top:16px">'+
+      '<p class="hint" style="margin-bottom:14px">'+t('sheetsHelp')+'</p>'+
+      '<div class="field"><label>'+t('sheetsUrl')+'</label>'+
+        '<input type="text" id="api-url" dir="ltr" placeholder="https://script.google.com/macros/s/.../exec" value="'+esc(url)+'"></div>'+
+      '<div style="display:flex;gap:10px;flex-wrap:wrap">'+
+        '<button class="btn btn-ghost btn-sm" data-action="api-test">'+icon('check')+t('testConn')+'</button>'+
+        '<button class="btn btn-primary btn-sm" data-action="api-save">'+icon('check')+t('saveConn')+'</button>'+
+        (url?'<button class="btn btn-ghost btn-sm" data-action="api-push">'+icon('handover')+t('pushAll')+'</button>':'')+
+        (url?'<button class="btn btn-danger btn-sm" data-action="api-clear">'+t('disconnect')+'</button>':'')+
+      '</div>'+
+    '</div></div>';
 }
 
 /* ===================== SHEET / MODAL SYSTEM ===================== */
@@ -1813,6 +1952,28 @@ document.addEventListener('click', function(e){
   else if(action==='open-confirm-receipt'){ openConfirmReceiptSheet(el.getAttribute('data-id')); }
   else if(action==='open-city'){ openCitySheet(); }
   else if(action==='open-branch'){ openBranchSheet(); }
+  else if(action==='api-test'){
+    var u=(document.getElementById('api-url')||{}).value||'';
+    toast(t('loading')); 
+    Store.testApi(u.trim()).then(function(c){
+      toast(t('connOk')+' — '+Object.keys(c).map(function(k){return k+':'+c[k];}).join(' · '));
+    }).catch(function(){ toast(t('connFail'),'err'); });
+  }
+  else if(action==='api-save'){
+    var u2=((document.getElementById('api-url')||{}).value||'').trim();
+    if(!u2){ toast(t('errFill'),'err'); return; }
+    Store.testApi(u2).then(function(){
+      Store.setApiUrl(u2); toast(t('connOk')); setTimeout(function(){ location.reload(); },700);
+    }).catch(function(){ toast(t('connFail'),'err'); });
+  }
+  else if(action==='api-push'){
+    toast(t('loading'));
+    Store.pushAll().then(function(n){ toast(t('uploaded').replace('{n}',n)); })
+      .catch(function(){ toast(t('connFail'),'err'); });
+  }
+  else if(action==='api-clear'){
+    askConfirm(t('disconnect')+'?',function(){ Store.setApiUrl(null); location.reload(); });
+  }
   else if(action==='admin-sub'){ adminSub=el.getAttribute('data-sub'); renderView(); }
   else if(action==='close-sheet'){ closeSheet(); }
   else if(action==='dismiss-confirm'){ dismissConfirmBox(); }
