@@ -368,6 +368,46 @@ button{font-family:inherit}
 .req-actions{display:flex;gap:10px;margin-top:14px}
 .req-actions .btn{flex:1}
 
+/* ---------- custom dropdown ---------- */
+.xsel{position:relative;width:100%}
+.xsel>select{position:absolute;opacity:0;pointer-events:none;width:0;height:0}
+.xsel-trigger{
+  width:100%;display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding:13px 14px;border-radius:13px;cursor:pointer;text-align:start;
+  background:rgba(255,255,255,.04);border:1.5px solid var(--line);color:var(--ink);
+  font-family:inherit;font-size:14px;transition:border-color .2s,box-shadow .2s,background .2s;
+}
+.xsel-trigger:hover{border-color:var(--line-bright)}
+.xsel.open .xsel-trigger{
+  border-color:var(--brand);background:rgba(201,160,77,.07);
+  box-shadow:0 0 0 4px rgba(201,160,77,.16);
+}
+.xsel-value{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.xsel-caret{width:17px;height:17px;flex:none;color:var(--ink-dim);transition:transform .25s}
+.xsel.open .xsel-caret{transform:rotate(180deg);color:var(--brand-lift)}
+.xsel-panel{
+  position:absolute;z-index:60;inset-inline:0;top:calc(100% + 8px);
+  max-height:262px;overflow-y:auto;padding:6px;border-radius:15px;
+  background:linear-gradient(170deg,#191d28,#0d1017);
+  border:1px solid var(--line-bright);box-shadow:var(--shadow-lg);
+  opacity:0;visibility:hidden;transform:translateY(-8px) scale(.98);
+  transition:opacity .2s,transform .22s cubic-bezier(.16,1,.3,1),visibility .22s;
+}
+.xsel.open .xsel-panel{opacity:1;visibility:visible;transform:none}
+.xsel-opt{
+  width:100%;display:flex;align-items:center;justify-content:space-between;gap:10px;
+  padding:12px 13px;border:none;border-radius:11px;cursor:pointer;text-align:start;
+  background:transparent;color:var(--ink-dim);font-family:inherit;font-size:13.5px;font-weight:600;
+  transition:background .15s,color .15s;
+}
+.xsel-opt:hover{background:rgba(255,255,255,.06);color:var(--ink)}
+.xsel-opt svg{width:16px;height:16px;flex:none}
+.xsel-opt.sel{background:rgba(201,160,77,.14);color:var(--brand-lift);font-weight:800}
+.xsel-panel::-webkit-scrollbar{width:8px}
+.xsel-panel::-webkit-scrollbar-thumb{background:rgba(255,255,255,.14);border-radius:99px}
+/* Inside a sheet the panel must escape the scroll container's clipping. */
+.sheet .xsel.open{z-index:61}
+
 /* ---------- always-on totals strip ---------- */
 .totals-strip{
   position:sticky;top:calc(118px + env(safe-area-inset-top,0px));z-index:18;
@@ -1529,7 +1569,7 @@ var navByRole = {
 
 function renderShell(){
   var app=document.getElementById('app');
-  if(!STATE.session){ app.innerHTML=renderLogin(); bindLogin(); return; }
+  if(!STATE.session){ app.innerHTML=renderLogin(); bindLogin(); enhanceSelects(app); return; }
   document.body.setAttribute('dir', STATE.lang==='ar'?'rtl':'ltr');
   var nav=navByRole[STATE.session.role]||[];
   var html='';
@@ -1603,6 +1643,72 @@ function updateTopbar(){
 
 
 
+
+
+/* ===================== CUSTOM DROPDOWN =====================
+   Native <select> menus are drawn by the operating system and cannot be
+   styled, so they look foreign inside the app. Every select is progressively
+   enhanced: the real element stays in the DOM (so FormData keeps working)
+   and a styled control drives it. */
+function closeAllSelects(except){
+  document.querySelectorAll('.xsel.open').forEach(function(x){
+    if(x!==except) x.classList.remove('open');
+  });
+}
+function enhanceSelects(root){
+  (root||document).querySelectorAll('select:not([data-xsel])').forEach(function(sel){
+    sel.setAttribute('data-xsel','1');
+    var wrap=document.createElement('div');
+    wrap.className='xsel';
+    sel.parentNode.insertBefore(wrap,sel);
+    wrap.appendChild(sel);
+
+    var trigger=document.createElement('button');
+    trigger.type='button';
+    trigger.className='xsel-trigger';
+    var panel=document.createElement('div');
+    panel.className='xsel-panel';
+    wrap.appendChild(trigger);
+    wrap.appendChild(panel);
+
+    function label(){
+      var o=sel.options[sel.selectedIndex];
+      return o?o.textContent:'';
+    }
+    function paint(){
+      trigger.innerHTML='<span class="xsel-value">'+esc(label())+'</span>'+
+        '<svg class="xsel-caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>';
+      panel.innerHTML=Array.prototype.map.call(sel.options,function(o,i){
+        return '<button type="button" class="xsel-opt'+(i===sel.selectedIndex?' sel':'')+'" data-i="'+i+'">'+
+          '<span>'+esc(o.textContent)+'</span>'+
+          (i===sel.selectedIndex?'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>':'')+
+        '</button>';
+      }).join('');
+    }
+    paint();
+
+    trigger.onclick=function(ev){
+      ev.stopPropagation();
+      var willOpen=!wrap.classList.contains('open');
+      closeAllSelects(wrap);
+      wrap.classList.toggle('open', willOpen);
+      if(willOpen){
+        var cur=panel.querySelector('.xsel-opt.sel');
+        if(cur) cur.scrollIntoView({block:'nearest'});
+      }
+    };
+    panel.onclick=function(ev){
+      var b=ev.target.closest('.xsel-opt'); if(!b) return;
+      ev.stopPropagation();
+      sel.selectedIndex=Number(b.getAttribute('data-i'));
+      sel.dispatchEvent(new Event('change',{bubbles:true}));
+      paint();
+      wrap.classList.remove('open');
+    };
+    sel.addEventListener('change',paint);
+  });
+}
+document.addEventListener('click',function(){ closeAllSelects(null); });
 
 /* ===================== EDIT LOCK + ACCOUNTANT APPROVAL =====================
    Once a sale or an expense is saved it is final. The person who recorded it
@@ -2000,6 +2106,7 @@ function renderView(){
   if(tot) tot.innerHTML=filterBar()+totalsStrip();
   var bs=document.getElementById('bell-slot');
   if(bs) bs.innerHTML=bellHtml();
+  enhanceSelects(v);
   updateTopbar();
   // animate kpi counters
   v.querySelectorAll('[data-count]').forEach(function(el){ animateValue(el, Number(el.getAttribute('data-count'))); });
@@ -2548,6 +2655,7 @@ function openSheet(title, bodyHtml, onMount){
   if(sh) void sh.offsetWidth;
   if(sc) sc.classList.add('show');
   if(sh) sh.classList.add('show');
+  enhanceSelects(overlay);
   if(onMount) onMount(overlay);
 }
 function closeSheet(){
