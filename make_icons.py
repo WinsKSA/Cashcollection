@@ -24,7 +24,7 @@ specs = [
     ("favicon-64.png", 64, 0.20, 0.68),
 ]
 for name, size, rr, pad in specs:
-    s = svg(size, rr, "#06070B", "#00E6A2", pad)
+    s = svg(size, rr, "#06070B", "#C9A04D", pad)
     doc = pymupdf.open(stream=s.encode("utf-8"), filetype="svg")
     page = doc[0]
     zoom = size / page.rect.width

@@ -1373,7 +1373,7 @@ var Store = (function(){
   }
   function saveLocal(){ try{ localStorage.setItem(LS_KEY, encodeURIComponent(JSON.stringify(local))); }catch(e){} }
   function seedLocal(){
-    local={cities:{},branches:{},staff:{},sales:{},expenses:{},handovers:{},bills:{},systemSales:{}};
+    local=blankDb();   /* built from COLS, so a new collection is never missing */
     CITIES_SEED.forEach(function(c){ local.cities[c.id]={nameAr:c.nameAr,nameEn:c.nameEn,order:0}; });
     BRANCHES_SEED.forEach(function(b,i){ local.branches[b.id]={nameAr:b.nameAr,nameEn:b.nameEn,cityId:b.cityId,managerName:b.managerName||"",areaManagerName:b.areaManagerName||"",collectorName:b.collectorName||"",active:true,order:i}; });
     var now=Date.now();
@@ -1423,6 +1423,7 @@ var Store = (function(){
         }
       }
       mode='local'; local=loadLocal(); if(!local) seedLocal();
+      COLS.forEach(function(c){ if(!local[c]) local[c]={}; });
     },
     apiUrl:function(){ return apiUrl; },
     setApiUrl:setApiUrl,
@@ -1456,7 +1457,7 @@ var Store = (function(){
         }, function(err){ console.warn('db err',col,err); });
       } else {
         listeners[col]=listeners[col]||[];
-        var fn=function(){ cb(Object.assign({},local[col])); };
+        var fn=function(){ cb(Object.assign({},(local&&local[col])||{})); };
         listeners[col].push(fn);
         setTimeout(fn,0);
         return function(){ listeners[col]=listeners[col].filter(function(x){return x!==fn;}); };
@@ -1468,6 +1469,8 @@ var Store = (function(){
         return ref.id;
       } else {
         var id=genId();
+        if(!local) local=blankDb();
+        if(!local[col]) local[col]={};
         local[col][id]=data;
         saveLocal(); emit(col); queuePush('set',col,id,data);
         return id;
@@ -1475,11 +1478,19 @@ var Store = (function(){
     },
     async set(col,id,data){
       if(mode==='db'){ await dbns.doc(col+'/'+id).set(data); }
-      else { local[col][id]=data; saveLocal(); emit(col); queuePush('set',col,id,data); }
+      else {
+        if(!local) local=blankDb();
+        if(!local[col]) local[col]={};
+        local[col][id]=data; saveLocal(); emit(col); queuePush('set',col,id,data);
+      }
     },
     async update(col,id,data){
       if(mode==='db'){ await dbns.doc(col+'/'+id).update(data); }
-      else { local[col][id]=Object.assign({},local[col][id]||{},data); saveLocal(); emit(col); queuePush('set',col,id,local[col][id]); }
+      else {
+        if(!local) local=blankDb();
+        if(!local[col]) local[col]={};
+        local[col][id]=Object.assign({},local[col][id]||{},data); saveLocal(); emit(col); queuePush('set',col,id,local[col][id]);
+      }
     },
     async uploadAsset(file){
       if(mode==='db' && assetsns){
@@ -3134,7 +3145,7 @@ function installAppIcon(){
   if(document.querySelector('link[rel="apple-touch-icon"]')) return;
   var svg='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">'+
     '<rect width="512" height="512" rx="112" fill="#06070B"/>'+
-    '<g transform="translate(256 256) scale(1.55) translate(-288 -130)" fill="#00E6A2">'+LOGO_MARK_PATHS+'</g></svg>';
+    '<g transform="translate(256 256) scale(1.55) translate(-288 -130)" fill="#C9A04D">'+LOGO_MARK_PATHS+'</g></svg>';
   var href='data:image/svg+xml,'+encodeURIComponent(svg);
   [['icon','image/svg+xml'],['apple-touch-icon',null],['shortcut icon','image/svg+xml']].forEach(function(p){
     var l=document.createElement('link'); l.rel=p[0]; if(p[1]) l.type=p[1]; l.href=href; document.head.appendChild(l);
@@ -3148,7 +3159,7 @@ function installAppIcon(){
 async function boot(){
   installAppIcon();
   await Store.init();
-  ['cities','branches','staff','sales','expenses','handovers','bills','systemSales'].forEach(function(col){
+  ['cities','branches','staff','sales','expenses','handovers','bills','systemSales','editRequests'].forEach(function(col){
     Store.onCollection(col, function(data){
       STATE.data[col]=data;
       STATE.loaded[col]=true;
