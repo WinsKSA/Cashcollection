@@ -391,6 +391,10 @@ button{font-family:inherit}
 .link-warn .lw-body b{display:block;font-size:13.5px;color:var(--gold)}
 .link-warn .lw-body span{display:block;margin-top:3px;font-size:11.5px;color:var(--ink-dim);line-height:1.6}
 
+.daychips{display:flex;gap:7px;flex-wrap:wrap}
+.daychips .fchip{flex:1;min-width:74px;justify-content:center;font-size:12px}
+.chip.back{background:var(--gold-soft);color:var(--gold);border-color:rgba(239,174,78,.35)}
+
 /* ---------- multi-entry rows ---------- */
 .mlist{display:flex;flex-direction:column;gap:9px;margin-bottom:16px}
 .mrow{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:14px;
@@ -1232,6 +1236,9 @@ branchCount:{ar:"{n} فرع",en:"{n} branches"},
 enterOne:{ar:"أدخل مبلغاً واحداً على الأقل",en:"Enter at least one amount"},
 savedCount:{ar:"تم حفظ {n} عملية",en:"Saved {n} entries"},
 savingNow:{ar:"جارٍ الحفظ...",en:"Saving..."},
+entryDate:{ar:"تاريخ العملية",en:"Entry date"},
+backdatedTag:{ar:"بأثر رجعي",en:"backdated"},
+backdatedHint:{ar:"سيُسجَّل بتاريخ {d}",en:"Will be recorded under {d}"},
 dupTitle:{ar:"عملية مطابقة سُجّلت قبل قليل",en:"An identical entry was just recorded"},
 dupBody:{ar:"سُجّلت عملية بنفس النوع والمبلغ ({a}) قبل {m} دقيقة. هل تريد تسجيلها مرة أخرى؟",en:"The same type and amount ({a}) was recorded {m} minutes ago. Record it again?"},
 dupYes:{ar:"نعم، سجّلها",en:"Yes, record it"},
@@ -2080,6 +2087,56 @@ async function decideRequest(id,approve,note){
   toast(approve?t('reqApproved'):t('reqRejected'));
 }
 
+/* Entries can be recorded for the last few days, because a branch does not
+   always get to the app the same evening. The chosen day drives reporting
+   via createdAt, while recordedAt keeps the truth of when it was typed. */
+var BACKDATE_DAYS = 3;
+function dayOptions(){
+  var out=[];
+  for(var i=0;i<=BACKDATE_DAYS;i++){
+    var d=new Date(); d.setDate(d.getDate()-i); d.setHours(0,0,0,0);
+    var label = i===0 ? t('fToday') : i===1 ? t('fYesterday')
+      : d.toLocaleDateString(STATE.lang==='ar'?'ar-SA-u-nu-latn':'en-GB',{weekday:'short',day:'numeric',month:'short'});
+    out.push({iso:isoOf(d), label:label, offset:i});
+  }
+  return out;
+}
+function dayChipsHtml(){
+  return '<div class="field"><label>'+t('entryDate')+'</label>'+
+    '<div class="daychips" id="day-chips">'+
+      dayOptions().map(function(o,i){
+        return '<button type="button" class="fchip'+(i===0?' on':'')+'" data-day-pick="'+o.iso+'">'+o.label+'</button>';
+      }).join('')+
+    '</div><div class="hint" id="day-hint" hidden></div></div>';
+}
+/* Returns a getter for the chosen date; wires the chips inside `root`. */
+function wireDayChips(root){
+  var chosen=dayOptions()[0].iso;
+  var box=root.querySelector('#day-chips');
+  var hint=root.querySelector('#day-hint');
+  if(box){
+    box.addEventListener('click',function(ev){
+      var b=ev.target.closest('[data-day-pick]'); if(!b) return;
+      box.querySelectorAll('.fchip').forEach(function(c){ c.classList.remove('on'); });
+      b.classList.add('on');
+      chosen=b.getAttribute('data-day-pick');
+      var isToday = chosen===dayOptions()[0].iso;
+      if(hint){
+        hint.hidden = isToday;
+        hint.textContent = isToday ? '' : t('backdatedHint').replace('{d}', fmtDay(chosen));
+      }
+    });
+  }
+  return function(){
+    var now=new Date();
+    if(chosen===dayOptions()[0].iso) return {createdAt:now.toISOString(), dateKey:chosen, back:false};
+    /* Keep the current clock time on the chosen day so ordering stays sane. */
+    var d=new Date(chosen+'T00:00:00');
+    d.setHours(now.getHours(), now.getMinutes(), now.getSeconds());
+    return {createdAt:d.toISOString(), dateKey:chosen, back:true};
+  };
+}
+
 /* Submit guard: a save that gives no feedback invites a second press, which
    is how duplicate rows appeared. The button locks itself for the duration
    and says what it is doing. */
@@ -2691,7 +2748,9 @@ function saleRow(s){
   var label = saleTypeLabel(s);
   return '<div class="row"><div class="ricon">'+icon(ic)+'</div><div class="rmain"><b>'+label+'</b>'+
     '<div class="rmeta"><span class="chip '+s.type+'">'+label+'</span><span>'+fmtDate(s.createdAt)+'</span>'+
-    (s.note?'<span>· '+esc(s.note)+'</span>':'')+lockControls('sales',s)+'</div></div>'+
+    (s.note?'<span>· '+esc(s.note)+'</span>':'')+
+    (s.recordedAt?'<span class="chip back">'+t('backdatedTag')+'</span>':'')+
+    lockControls('sales',s)+'</div></div>'+
     '<div class="ramt pos">+ '+fmtMoney(s.amount)+'</div></div>';
 }
 
@@ -2723,7 +2782,7 @@ function renderExpenses(){
   return html;
 }
 function expenseRow(e){
-  return '<div class="row"><div class="ricon">'+(e.receiptUrl?'<img src="'+e.receiptUrl+'" style="width:38px;height:38px;border-radius:9px;object-fit:cover">':icon('expenses'))+'</div><div class="rmain"><b>'+catLabel(EXP_CATS,e.category)+'</b><div class="rmeta"><span>'+fmtDate(e.createdAt)+'</span>'+(e.note?'<span>· '+esc(e.note)+'</span>':'')+lockControls('expenses',e)+'</div></div><div class="ramt neg">− '+fmtMoney(e.amount)+'</div></div>';
+  return '<div class="row"><div class="ricon">'+(e.receiptUrl?'<img src="'+e.receiptUrl+'" style="width:38px;height:38px;border-radius:9px;object-fit:cover">':icon('expenses'))+'</div><div class="rmain"><b>'+catLabel(EXP_CATS,e.category)+'</b><div class="rmeta"><span>'+fmtDate(e.createdAt)+'</span>'+(e.note?'<span>· '+esc(e.note)+'</span>':'')+(e.recordedAt?'<span class="chip back">'+t('backdatedTag')+'</span>':'')+lockControls('expenses',e)+'</div></div><div class="ramt neg">− '+fmtMoney(e.amount)+'</div></div>';
 }
 
 /* ===================== HANDOVER TAB ===================== */
@@ -3200,7 +3259,8 @@ function openSaleSheet(){
      any given day. The same app can be added more than once. */
   var lines=[];
 
-  var body='<div class="mlist">'+rows+'</div>'+
+  var body=dayChipsHtml()+
+    '<div class="mlist">'+rows+'</div>'+
     (myApps.length
       ? '<div class="msec">'+t('appSales')+'</div>'+
         '<div class="appadd">'+
@@ -3219,6 +3279,7 @@ function openSaleSheet(){
     '<button class="btn btn-primary btn-block" id="m-save">'+icon('check')+t('save')+'</button>';
 
   openSheet(t('addSale'),body,function(overlay){
+    var whenOf=wireDayChips(overlay);
     var inputs=Array.prototype.slice.call(overlay.querySelectorAll('[data-amt]'));
     var linesBox=overlay.querySelector('#app-lines');
 
@@ -3288,11 +3349,13 @@ function openSaleSheet(){
         }, dupLabel);
         if(!go) return;
       }
-      var now=new Date().toISOString(), dk=now.slice(0,10);
+      var when=whenOf();
       function base(){
-        return {branchId:STATE.session.branchId, note:note,
+        var b={branchId:STATE.session.branchId, note:note,
           staffId:STATE.session.id, staffName:STATE.session.name,
-          createdAt:now, dateKey:dk};
+          createdAt:when.createdAt, dateKey:when.dateKey};
+        if(when.back) b.recordedAt=new Date().toISOString();
+        return b;
       }
       for(var k=0;k<entries.length;k++){
         var rec=base(); rec.type=entries[k].key; rec.amount=entries[k].amount;
@@ -3329,12 +3392,14 @@ function openExpenseSheet(){
     '</div>';
   }).join('');
 
-  var body='<div class="mlist">'+rows+'</div>'+
+  var body=dayChipsHtml()+
+    '<div class="mlist">'+rows+'</div>'+
     '<div class="mtotal rose"><div><span>'+t('totExpenses')+'</span><b class="mono" id="x-total">0</b></div></div>'+
     '<input type="file" accept="image/*" id="x-file" style="display:none">'+
     '<button class="btn btn-primary btn-block" id="x-save">'+icon('check')+t('save')+'</button>';
 
   openSheet(t('addExpense'),body,function(overlay){
+    var whenOf=wireDayChips(overlay);
     var inputs=Array.prototype.slice.call(overlay.querySelectorAll('[data-amt]'));
     var receipts={};            // category -> {id,url}
     var fileInput=overlay.querySelector('#x-file');
@@ -3389,7 +3454,7 @@ function openExpenseSheet(){
         }, dupE);
         if(!goE) return;
       }
-      var now=new Date().toISOString(), dk=now.slice(0,10);
+      var when=whenOf();
       for(var k=0;k<entries.length;k++){
         var e=entries[k];
         var data={
@@ -3397,8 +3462,9 @@ function openExpenseSheet(){
           scope:isTreasury?'treasury':'branch',
           category:e.cat, amount:e.amount, note:e.note,
           staffId:STATE.session.id, staffName:STATE.session.name,
-          createdAt:now, dateKey:dk
+          createdAt:when.createdAt, dateKey:when.dateKey
         };
+        if(when.back) data.recordedAt=new Date().toISOString();
         if(receipts[e.cat]){ data.receiptUrl=receipts[e.cat].url; data.receiptId=receipts[e.cat].id; }
         await Store.add('expenses',data);
       }
