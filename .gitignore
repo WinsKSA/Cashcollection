@@ -1,3 +1,5 @@
 _test.html
 dump_xlsx.py
 *.log
+_*.py
+old_sale.txt
