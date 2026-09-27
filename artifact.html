@@ -392,6 +392,17 @@ button{font-family:inherit}
   text-transform:uppercase;color:var(--ink-faint)}
 .mtotal b{display:block;margin-top:4px;font-size:21px;font-weight:600;color:var(--mint)}
 
+.msec{margin:18px 0 10px;font-size:10.5px;font-weight:800;letter-spacing:.13em;
+  text-transform:uppercase;color:var(--ink-faint);display:flex;align-items:center;gap:10px}
+.msec::after{content:"";flex:1;height:1px;background:var(--line)}
+.chip.app{background:rgba(139,123,255,.14);color:var(--violet);border-color:rgba(139,123,255,.3)}
+.bcheck{display:flex;flex-direction:column;gap:6px;max-height:230px;overflow-y:auto;
+  padding:8px;border-radius:13px;border:1px solid var(--line);background:rgba(0,0,0,.22)}
+.bchk{display:flex;align-items:center;gap:10px;padding:9px 11px;border-radius:10px;cursor:pointer;
+  font-size:13px;color:var(--ink-dim);transition:background .15s}
+.bchk:hover{background:rgba(255,255,255,.05);color:var(--ink)}
+.bchk input{width:18px;height:18px;accent-color:var(--brand);flex:none}
+
 /* ---------- expense multi-entry extras ---------- */
 .xrow{flex-direction:column;align-items:stretch;gap:0}
 .mrow-top{display:flex;align-items:center;gap:12px}
@@ -938,7 +949,7 @@ var PAY_TYPES = [
 /* Every type counts toward sales revenue, including ضيافة. Cash on hand is
    a separate calculation that only ever looks at the "cash" type, so a
    non-cash sale still never inflates the money expected in the drawer. */
-var REVENUE_TYPES = ["pos","cash","other","hospitality"];
+var REVENUE_TYPES = ["pos","cash","other","hospitality","app"];
 var BILL_TYPES = [
   {id:"electricity", ar:"كهرباء",      en:"Electricity", ic:"alert"},
   {id:"internet",    ar:"إنترنت",      en:"Internet",    ic:"globe"},
@@ -975,6 +986,12 @@ var STAFF_SEED = [
   {id:"u-ahmedhael",name:"Ahmed Hael",         roles:["collector"]},
   {id:"u-nasr",     name:"Mohamed Nasr",       roles:["area","collector"]},
   {id:"u-treasury", name:"Treasury",           roles:["treasury"]}
+];
+var APPS_SEED = [
+  {id:"hungerstation", nameAr:"هنقرستيشن", nameEn:"HungerStation"},
+  {id:"jahez",         nameAr:"جاهز",       nameEn:"Jahez"},
+  {id:"keeta",         nameAr:"كيتا",       nameEn:"Keeta"},
+  {id:"ninja",         nameAr:"نينجا",      nameEn:"Ninja"}
 ];
 var DEMO_PIN_HASH="03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4"; /* demo seed accounts use PIN 1234 */
 async function hashPin(pin){
@@ -1143,6 +1160,25 @@ totRevenue:{ar:"الإيراد",en:"Revenue"},
 totNetwork:{ar:"إيراد الشبكة",en:"Network revenue"},
 totExpenses:{ar:"المصروفات",en:"Expenses"},
 expWhatFor:{ar:"على ماذا صُرف؟",en:"What was it for?"},
+manageApps:{ar:"تطبيقات التوصيل",en:"Delivery Apps"},
+edit:{ar:"تعديل",en:"Edit"},
+appSales:{ar:"مبيعات التطبيقات",en:"App sales"},
+appSaleWord:{ar:"تطبيق",en:"App"},
+addApp:{ar:"إضافة تطبيق",en:"Add app"},
+editApp:{ar:"تعديل التطبيق",en:"Edit app"},
+appNameAr:{ar:"اسم التطبيق (عربي)",en:"App name (Arabic)"},
+appNameEn:{ar:"اسم التطبيق (إنجليزي)",en:"App name (English)"},
+appBranches:{ar:"الفروع المتاحة فيها",en:"Available at branches"},
+allBranchesOpt:{ar:"جميع الفروع",en:"All branches"},
+pickBranches:{ar:"فروع محددة",en:"Selected branches"},
+noApps:{ar:"لا توجد تطبيقات مضافة",en:"No apps added"},
+noAppsSub:{ar:"أضف تطبيقات التوصيل لتسجيل مبيعاتها",en:"Add delivery apps to record their sales"},
+noAppsBranch:{ar:"لا توجد تطبيقات مفعّلة لهذا الفرع",en:"No apps enabled for this branch"},
+appSaved:{ar:"تم حفظ التطبيق",en:"App saved"},
+appDeleted:{ar:"تم حذف التطبيق",en:"App removed"},
+deleteApp:{ar:"حذف التطبيق",en:"Delete app"},
+deleteAppConfirm:{ar:"سيُحذف التطبيق من القائمة. المبيعات المسجّلة سابقاً تبقى كما هي. هل تريد المتابعة؟",en:"The app will be removed from the list. Sales already recorded stay as they are. Continue?"},
+branchCount:{ar:"{n} فرع",en:"{n} branches"},
 enterOne:{ar:"أدخل مبلغاً واحداً على الأقل",en:"Enter at least one amount"},
 savedCount:{ar:"تم حفظ {n} عملية",en:"Saved {n} entries"},
 reconTitle:{ar:"مطابقة تاب سينس (TopSense)",en:"TopSense reconciliation"},
@@ -1342,7 +1378,7 @@ var Store = (function(){
   var mode='local', dbns=null, assetsns=null;
   var LS_KEY='wins_cash_local_v1';
   var API_KEY='wins_api_url';
-  var COLS=['cities','branches','staff','sales','expenses','handovers','editRequests','bills','systemSales'];
+  var COLS=['cities','branches','staff','sales','expenses','handovers','editRequests','bills','systemSales','apps'];
   var local=null;
   var listeners={}; // path -> [cb]
   var apiUrl=null, pollTimer=null, lastSig='', pendingPush=[], pushing=false, pushFailures=0;
@@ -1461,6 +1497,9 @@ var Store = (function(){
     BRANCHES_SEED.forEach(function(b,i){ local.branches[b.id]={nameAr:b.nameAr,nameEn:b.nameEn,cityId:b.cityId,managerName:b.managerName||"",areaManagerName:b.areaManagerName||"",collectorName:b.collectorName||"",active:true,order:i}; });
     var now=Date.now();
     function iso(offsetHrs){ return new Date(now-offsetHrs*3600000).toISOString(); }
+    APPS_SEED.forEach(function(a,i){
+      local.apps[a.id]={nameAr:a.nameAr,nameEn:a.nameEn,allBranches:true,branchIds:[],active:true,order:i};
+    });
     STAFF_SEED.forEach(function(s){ local.staff[s.id]={name:s.name,role:s.roles[0],roles:s.roles,branchId:s.branchId||null,pinHash:DEMO_PIN_HASH,createdAt:iso(240)}; });
     local.sales['s1']={branchId:"khurais",type:"cash",amount:4200,note:"",staffId:"u-omran",staffName:"Omran",createdAt:iso(5),dateKey:todayKey()};
     local.sales['s2']={branchId:"khurais",type:"pos",amount:9100,note:"",staffId:"u-omran",staffName:"Omran",createdAt:iso(4),dateKey:todayKey()};
@@ -1597,7 +1636,7 @@ var STATE={
   session: null,
   tab:'dashboard',
   range:{key:'today',from:null,to:null},
-  data:{cities:{},branches:{},staff:{},sales:{},expenses:{},handovers:{},bills:{},systemSales:{}},
+  data:{cities:{},branches:{},staff:{},sales:{},expenses:{},handovers:{},bills:{},systemSales:{},apps:{}},
   loaded:{cities:false,branches:false,staff:false,sales:false,expenses:false,handovers:false}
 };
 try{ var s=localStorage.getItem('wins_session'); if(s) STATE.session=JSON.parse(decodeURIComponent(s)); }catch(e){}
@@ -1985,6 +2024,32 @@ async function decideRequest(id,approve,note){
     decidedAt: now, decisionNote: note||''
   });
   toast(approve?t('reqApproved'):t('reqRejected'));
+}
+
+/* ===================== DELIVERY APPS =====================
+   Sales through delivery apps are recorded per app. The list is managed by
+   an admin and each app is either available everywhere or at named branches,
+   because not every branch is on every platform. */
+function appsAll(){
+  return Object.keys(STATE.data.apps||{})
+    .map(function(id){ return Object.assign({id:id}, STATE.data.apps[id]); })
+    .filter(function(a){ return a.active!==false; })
+    .sort(function(a,b){ return (a.order||0)-(b.order||0); });
+}
+function appLabel(id){
+  var a=(STATE.data.apps||{})[id];
+  if(!a) return id||'';
+  return STATE.lang==='ar' ? (a.nameAr||a.nameEn||id) : (a.nameEn||a.nameAr||id);
+}
+function appsForBranch(branchId){
+  return appsAll().filter(function(a){
+    if(a.allBranches) return true;
+    return (a.branchIds||[]).indexOf(branchId)>-1;
+  });
+}
+function saleTypeLabel(sale){
+  if(sale.type==='app') return t('appSaleWord')+' · '+appLabel(sale.appId);
+  return catLabel(PAY_TYPES, sale.type);
 }
 
 /* ===================== SALES SYSTEM RECONCILIATION =====================
@@ -2508,6 +2573,10 @@ function renderSales(){
   var totalToday=sumSalesByType(bId,'today',null);
   var html='<div class="kpi-grid stagger">'+
     PAY_TYPES.map(function(pt){ return payKpi(pt.id,bId); }).join('')+
+    (appsForBranch(bId).length
+      ? '<div class="kpi"><div class="lbl">'+icon('globe')+' '+t('appSales')+'</div>'+
+        '<div class="val"><span class="mono" data-count="'+sumSalesByType(bId,'range','app')+'">0</span></div></div>'
+      : '')+
   '</div>';
   html+=reconCard(bId);
   html+='<div class="section"><div class="card"><div class="card-head"><h3>'+t('salesLog')+'</h3><button class="btn btn-primary btn-sm" data-action="open-sale">'+icon('plus')+t('addSale')+'</button></div><div class="card-body">'+
@@ -2522,7 +2591,14 @@ function payKpi(type,bId){
   return '<div class="kpi"><div class="lbl">'+icon(icons[type])+' '+catLabel(PAY_TYPES,type)+'</div><div class="val"><span class="mono" data-count="'+v+'">0</span></div></div>';
 }
 function saleRow(s){
-  return '<div class="row"><div class="ricon">'+icon(s.type==='pos'?'bank':(s.type==='hospitality'?'user':'wallet'))+'</div><div class="rmain"><b>'+catLabel(PAY_TYPES,s.type)+'</b><div class="rmeta"><span class="chip '+s.type+'">'+catLabel(PAY_TYPES,s.type)+'</span><span>'+fmtDate(s.createdAt)+'</span>'+(s.note?'<span>· '+esc(s.note)+'</span>':'')+lockControls('sales',s)+'</div></div><div class="ramt pos">+ '+fmtMoney(s.amount)+'</div></div>';
+  var ic = s.type==='pos' ? 'bank'
+         : s.type==='hospitality' ? 'user'
+         : s.type==='app' ? 'globe' : 'wallet';
+  var label = saleTypeLabel(s);
+  return '<div class="row"><div class="ricon">'+icon(ic)+'</div><div class="rmain"><b>'+label+'</b>'+
+    '<div class="rmeta"><span class="chip '+s.type+'">'+label+'</span><span>'+fmtDate(s.createdAt)+'</span>'+
+    (s.note?'<span>· '+esc(s.note)+'</span>':'')+lockControls('sales',s)+'</div></div>'+
+    '<div class="ramt pos">+ '+fmtMoney(s.amount)+'</div></div>';
 }
 
 /* ===================== EXPENSES TAB ===================== */
@@ -2645,16 +2721,81 @@ function handoverCard(role,h){
 var adminSub='overview';
 function renderAdmin(){
   var html='<div class="tabbar">'+
-    ['overview','manageCities','manageBranches','manageStaff','integration'].map(function(k){
+    ['overview','manageCities','manageBranches','manageApps','manageStaff','integration'].map(function(k){
       var label=k==='overview'?t('networkOverview'):t(k);
       return '<button class="'+(adminSub===k?'active':'')+'" data-action="admin-sub" data-sub="'+k+'">'+label+'</button>';
     }).join('')+'</div>';
   if(adminSub==='overview') html+=dashAdmin();
   else if(adminSub==='manageCities') html+=adminCities();
   else if(adminSub==='manageBranches') html+=adminBranches();
+  else if(adminSub==='manageApps') html+=adminApps();
   else if(adminSub==='manageStaff') html+=adminStaff();
   else if(adminSub==='integration') html+=adminIntegration();
   return html;
+}
+function adminApps(){
+  var apps=appsAll();
+  return '<div class="card"><div class="card-head"><h3>'+t('manageApps')+'</h3>'+
+    '<button class="btn btn-primary btn-sm" data-action="open-app">'+icon('plus')+t('addApp')+'</button></div>'+
+    '<div class="card-body">'+
+    (apps.length ? apps.map(function(a){
+      var scope = a.allBranches ? t('allBranchesOpt')
+                : t('branchCount').replace('{n}', (a.branchIds||[]).length);
+      return '<div class="row"><div class="ricon">'+icon('globe')+'</div>'+
+        '<div class="rmain"><b>'+esc(STATE.lang==='ar'?(a.nameAr||a.nameEn):(a.nameEn||a.nameAr))+'</b>'+
+          '<div class="rmeta"><span class="chip">'+scope+'</span></div></div>'+
+        '<div class="bill-right">'+
+          '<button class="btn btn-ghost btn-sm" data-action="open-app" data-id="'+a.id+'">'+t('edit')+'</button>'+
+          '<button class="btn btn-danger btn-sm" data-action="del-app" data-id="'+a.id+'">'+t('deleteApp')+'</button>'+
+        '</div></div>';
+    }).join('') : emptyState('globe',t('noApps'),t('noAppsSub')))+
+  '</div></div>';
+}
+function openAppSheet(appId){
+  var a = appId ? (STATE.data.apps||{})[appId] : null;
+  var chosen = a ? (a.branchIds||[]) : [];
+  var allOn = a ? a.allBranches!==false : true;
+  var body='<div class="field"><label>'+t('appNameAr')+'</label>'+
+      '<input type="text" id="ap-ar" dir="rtl" value="'+esc(a?(a.nameAr||''):'')+'"></div>'+
+    '<div class="field"><label>'+t('appNameEn')+'</label>'+
+      '<input type="text" id="ap-en" dir="ltr" value="'+esc(a?(a.nameEn||''):'')+'"></div>'+
+    '<div class="field"><label>'+t('appBranches')+'</label>'+
+      '<div class="seg" id="ap-scope">'+
+        '<div class="seg-opt'+(allOn?' sel':'')+'" data-val="all">'+t('allBranchesOpt')+'</div>'+
+        '<div class="seg-opt'+(allOn?'':' sel')+'" data-val="some">'+t('pickBranches')+'</div>'+
+      '</div></div>'+
+    '<div class="field" id="ap-list"'+(allOn?' hidden':'')+'><div class="bcheck">'+
+      allBranchIds().map(function(id){
+        return '<label class="bchk"><input type="checkbox" value="'+id+'"'+
+          (chosen.indexOf(id)>-1?' checked':'')+'><span>'+esc(branchName(id))+'</span></label>';
+      }).join('')+
+    '</div></div>'+
+    '<button class="btn btn-primary btn-block" id="ap-save">'+icon('check')+t('save')+'</button>';
+  openSheet(appId?t('editApp'):t('addApp'),body,function(overlay){
+    var scope=allOn?'all':'some';
+    overlay.querySelectorAll('#ap-scope .seg-opt').forEach(function(opt){
+      opt.onclick=function(){
+        overlay.querySelectorAll('#ap-scope .seg-opt').forEach(function(o){o.classList.remove('sel');});
+        opt.classList.add('sel');
+        scope=opt.getAttribute('data-val');
+        overlay.querySelector('#ap-list').hidden = scope==='all';
+      };
+    });
+    overlay.querySelector('#ap-save').onclick=async function(){
+      var ar=overlay.querySelector('#ap-ar').value.trim();
+      var en=overlay.querySelector('#ap-en').value.trim();
+      if(!ar&&!en){ toast(t('errFill'),'err'); return; }
+      var picked=Array.prototype.slice.call(overlay.querySelectorAll('#ap-list input:checked'))
+        .map(function(c){ return c.value; });
+      if(scope==='some' && !picked.length){ toast(t('errFill'),'err'); return; }
+      var data={nameAr:ar||en, nameEn:en||ar, allBranches:scope==='all',
+        branchIds:scope==='all'?[]:picked, active:true,
+        order:a?(a.order||0):Object.keys(STATE.data.apps||{}).length};
+      if(appId) await Store.update('apps',appId,data);
+      else await Store.add('apps',data);
+      closeSheet(); toast(t('appSaved'));
+    };
+  });
 }
 function adminCities(){
   var rows=Object.keys(STATE.data.cities).map(function(id){return {id:id,d:STATE.data.cities[id]};});
@@ -2958,7 +3099,22 @@ function openSaleSheet(){
     '</div>';
   }).join('');
 
+  /* Apps available to this branch get their own rows, so a day's delivery
+     sales are entered in the same pass as the till types. */
+  var myApps=appsForBranch(STATE.session.branchId);
+  var appRows=myApps.map(function(a){
+    return '<div class="mrow" data-app="'+a.id+'">'+
+      '<div class="mrow-ic">'+icon('globe','ic-s')+'</div>'+
+      '<div class="mrow-label">'+esc(appLabel(a.id))+'</div>'+
+      '<div class="mrow-input"><input type="number" step="0.01" min="0" inputmode="decimal" '+
+        'data-amt="app:'+a.id+'" placeholder="0"><span>'+t('sar')+'</span></div>'+
+    '</div>';
+  }).join('');
+
   var body='<div class="mlist">'+rows+'</div>'+
+    (myApps.length
+      ? '<div class="msec">'+t('appSales')+'</div><div class="mlist">'+appRows+'</div>'
+      : '')+
     '<div class="mtotal"><div><span>'+t('totRevenue')+'</span><b class="mono" id="m-rev">0</b></div></div>'+
     '<div class="field" style="margin-top:16px"><label>'+t('note')+'</label>'+
       '<textarea id="m-note" placeholder="'+t('notePh')+'"></textarea></div>'+
@@ -2981,17 +3137,21 @@ function openSaleSheet(){
     overlay.querySelector('#m-save').onclick=async function(){
       var note=(overlay.querySelector('#m-note').value||'').trim();
       var entries=inputs.map(function(inp){
-        return {type:inp.getAttribute('data-amt'), amount:Number(inp.value)||0};
+        return {key:inp.getAttribute('data-amt'), amount:Number(inp.value)||0};
       }).filter(function(e){ return e.amount>0; });
       if(!entries.length){ toast(t('enterOne'),'err'); return; }
       var now=new Date().toISOString(), dk=now.slice(0,10);
-      /* Each type stays its own record so reports and cash maths are unchanged. */
+      /* Each type stays its own record so reports and cash maths are unchanged.
+         An app row is stored as type "app" carrying which app it was. */
       for(var k=0;k<entries.length;k++){
-        await Store.add('sales',{
-          branchId:STATE.session.branchId, type:entries[k].type, amount:entries[k].amount,
+        var e=entries[k], rec={
+          branchId:STATE.session.branchId, amount:e.amount,
           note:note, staffId:STATE.session.id, staffName:STATE.session.name,
           createdAt:now, dateKey:dk
-        });
+        };
+        if(e.key.indexOf('app:')===0){ rec.type='app'; rec.appId=e.key.slice(4); }
+        else rec.type=e.key;
+        await Store.add('sales',rec);
       }
       closeSheet();
       toast(t('savedCount').replace('{n}', entries.length));
@@ -3351,6 +3511,15 @@ document.addEventListener('click', function(e){
     var rid2=el.getAttribute('data-id');
     askConfirm(t('rejectReq')+'?',function(){ decideRequest(rid2,false,''); });
   }
+  else if(action==='open-app'){ openAppSheet(el.getAttribute('data-id')||null); }
+  else if(action==='del-app'){
+    var aid=el.getAttribute('data-id');
+    askConfirm(t('deleteAppConfirm'),async function(){
+      /* Deactivate rather than erase: sales already recorded still name it. */
+      await Store.update('apps',aid,{active:false});
+      toast(t('appDeleted'));
+    });
+  }
   else if(action==='open-recon'){ openReconSheet(el.getAttribute('data-branch')||null); }
   else if(action==='open-bill'){ openBillSheet(); }
   else if(action==='open-pay-bill'){ openPayBillSheet(el.getAttribute('data-id')); }
@@ -3406,7 +3575,7 @@ function installAppIcon(){
 async function boot(){
   installAppIcon();
   await Store.init();
-  ['cities','branches','staff','sales','expenses','handovers','bills','systemSales','editRequests'].forEach(function(col){
+  ['cities','branches','staff','sales','expenses','handovers','bills','systemSales','editRequests','apps'].forEach(function(col){
     Store.onCollection(col, function(data){
       STATE.data[col]=data;
       STATE.loaded[col]=true;
