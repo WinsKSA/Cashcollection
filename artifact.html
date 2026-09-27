@@ -1209,6 +1209,10 @@ deleteAppConfirm:{ar:"سيُحذف التطبيق من القائمة. المب�
 branchCount:{ar:"{n} فرع",en:"{n} branches"},
 enterOne:{ar:"أدخل مبلغاً واحداً على الأقل",en:"Enter at least one amount"},
 savedCount:{ar:"تم حفظ {n} عملية",en:"Saved {n} entries"},
+savingNow:{ar:"جارٍ الحفظ...",en:"Saving..."},
+dupTitle:{ar:"عملية مطابقة سُجّلت قبل قليل",en:"An identical entry was just recorded"},
+dupBody:{ar:"سُجّلت عملية بنفس النوع والمبلغ ({a}) قبل {m} دقيقة. هل تريد تسجيلها مرة أخرى؟",en:"The same type and amount ({a}) was recorded {m} minutes ago. Record it again?"},
+dupYes:{ar:"نعم، سجّلها",en:"Yes, record it"},
 reconTitle:{ar:"مطابقة تاب سينس (TopSense)",en:"TopSense reconciliation"},
 reconSystem:{ar:"إجمالي تاب سينس",en:"TopSense total"},
 reconEntered:{ar:"إجمالي المُدخل",en:"Entered total"},
@@ -1973,7 +1977,7 @@ function openEditRequestSheet(target,targetId){
       '<textarea id="er-reason" required placeholder="'+t('editReasonPh')+'"></textarea></div>'+
     '<button class="btn btn-primary btn-block" id="er-send">'+icon('check')+t('submitRequest')+'</button>';
   openSheet(t('requestEdit'),body,function(overlay){
-    overlay.querySelector('#er-send').onclick=async function(){
+    once(overlay.querySelector('#er-send'), async function(){
       var amt=Number(overlay.querySelector('#er-amt').value);
       var why=(overlay.querySelector('#er-reason').value||'').trim();
       if(!(amt>=0)||!why){ toast(t('errFill'),'err'); return; }
@@ -1987,7 +1991,7 @@ function openEditRequestSheet(target,targetId){
         requestedAt:new Date().toISOString()
       });
       closeSheet(); toast(t('requestSent'));
-    };
+    });
   });
 }
 function reqCard(r){
@@ -2052,6 +2056,46 @@ async function decideRequest(id,approve,note){
     decidedAt: now, decisionNote: note||''
   });
   toast(approve?t('reqApproved'):t('reqRejected'));
+}
+
+/* Submit guard: a save that gives no feedback invites a second press, which
+   is how duplicate rows appeared. The button locks itself for the duration
+   and says what it is doing. */
+function once(btn, handler){
+  if(!btn) return;
+  var busy=false;
+  btn.onclick=async function(ev){
+    if(busy) return;
+    busy=true;
+    var html=btn.innerHTML, wasDisabled=btn.disabled;
+    btn.disabled=true;
+    btn.innerHTML=icon('clock','ic-s')+' '+t('savingNow');
+    try{ await handler(ev); }
+    catch(e){ toast(t('errGeneric'),'err'); }
+    finally{
+      busy=false;
+      if(document.body.contains(btn)){ btn.disabled=wasDisabled; btn.innerHTML=html; }
+    }
+  };
+}
+/* A genuine repeat is possible, so this asks rather than blocks. */
+function recentDuplicate(col, matcher, withinMs){
+  var now=Date.now(), best=null;
+  Object.keys(STATE.data[col]||{}).forEach(function(id){
+    var r=STATE.data[col][id];
+    if(!matcher(r)) return;
+    var age=now-new Date(r.createdAt||0).getTime();
+    if(age>=0 && age<(withinMs||120000) && (!best||age<best)) best=age;
+  });
+  return best;
+}
+function confirmDuplicate(col, matcher, amountLabel){
+  return new Promise(function(resolve){
+    var age=recentDuplicate(col, matcher);
+    if(age===null) return resolve(true);
+    var mins=Math.max(1, Math.round(age/60000));
+    askConfirm(t('dupBody').replace('{a}', amountLabel).replace('{m}', mins), function(){ resolve(true); }, function(){ resolve(false); });
+  });
 }
 
 /* ===================== DELIVERY APPS =====================
@@ -2809,7 +2853,7 @@ function openAppSheet(appId){
         overlay.querySelector('#ap-list').hidden = scope==='all';
       };
     });
-    overlay.querySelector('#ap-save').onclick=async function(){
+    once(overlay.querySelector('#ap-save'), async function(){
       var ar=overlay.querySelector('#ap-ar').value.trim();
       var en=overlay.querySelector('#ap-en').value.trim();
       if(!ar&&!en){ toast(t('errFill'),'err'); return; }
@@ -2822,7 +2866,7 @@ function openAppSheet(appId){
       if(appId) await Store.update('apps',appId,data);
       else await Store.add('apps',data);
       closeSheet(); toast(t('appSaved'));
-    };
+    });
   });
 }
 function adminCities(){
@@ -3041,7 +3085,7 @@ function openPayBillSheet(id){
         opt.classList.add('sel'); method=opt.getAttribute('data-val');
       };
     });
-    overlay.querySelector('#pay-submit').onclick=async function(){
+    once(overlay.querySelector('#pay-submit'), async function(){
       var amt=Number(overlay.querySelector('#pay-amt').value);
       if(!amt||amt<=0){ toast(t('errFill'),'err'); return; }
       var now=new Date().toISOString();
@@ -3069,7 +3113,7 @@ function openPayBillSheet(id){
       /* Say the next invoice exists and when it is due, so the recurring
          chain is visible rather than something the user has to trust. */
       if(nextDue) setTimeout(function(){ toast(t('nextCreated')+' — '+fmtDay(nextDue)); }, 900);
-    };
+    });
   });
 }
 
@@ -3096,7 +3140,7 @@ function closeSheet(){
   overlay.style.pointerEvents='none';
   setTimeout(function(){ overlay.innerHTML=''; },300);
 }
-function askConfirm(msg,onYes){
+function askConfirm(msg,onYes,onNo){
   var overlay=document.getElementById('overlay');
   overlay.style.pointerEvents='auto';
   // Append a node rather than rewriting overlay.innerHTML: re-parsing the
@@ -3106,6 +3150,8 @@ function askConfirm(msg,onYes){
   box.innerHTML='<div class="confirm-card"><h4>'+t('confirmTitle')+'</h4><p>'+msg+'</p><div class="confirm-actions"><button class="btn btn-ghost" data-action="dismiss-confirm">'+t('cancel')+'</button><button class="btn btn-primary" data-confirm-yes>'+t('yes')+'</button></div></div>';
   overlay.appendChild(box);
   box.querySelector('[data-confirm-yes]').onclick=function(){ dismissConfirmBox(); onYes(); };
+  var no=box.querySelector('[data-action="dismiss-confirm"]');
+  if(no) no.addEventListener('click',function(){ if(onNo) onNo(); });
 }
 function dismissConfirmBox(){
   var box=document.querySelector('.confirm-box'); if(box) box.remove();
@@ -3198,12 +3244,28 @@ function openSaleSheet(){
       });
     }
 
-    overlay.querySelector('#m-save').onclick=async function(){
+    once(overlay.querySelector('#m-save'), async function(){
       var note=(overlay.querySelector('#m-note').value||'').trim();
       var entries=inputs.map(function(inp){
         return {key:inp.getAttribute('data-amt'), amount:Number(inp.value)||0};
       }).filter(function(e){ return e.amount>0; });
       if(!entries.length && !lines.length){ toast(t('enterOne'),'err'); return; }
+      /* Same branch, same type, same amount, minutes apart is nearly always a
+         repeated press rather than a real second sale — so ask first. */
+      var bid=STATE.session.branchId, dupLabel=null;
+      for(var d=0;d<entries.length;d++){
+        var en=entries[d];
+        var hit=recentDuplicate('sales', function(r){
+          return r.branchId===bid && r.type===en.key && Number(r.amount)===en.amount;
+        });
+        if(hit!==null){ dupLabel=fmtMoney(en.amount)+' '+catLabel(PAY_TYPES,en.key); break; }
+      }
+      if(dupLabel){
+        var go=await confirmDuplicate('sales', function(r){
+          return r.branchId===bid && Number(r.amount)===entries[0].amount;
+        }, dupLabel);
+        if(!go) return;
+      }
       var now=new Date().toISOString(), dk=now.slice(0,10);
       function base(){
         return {branchId:STATE.session.branchId, note:note,
@@ -3220,7 +3282,7 @@ function openSaleSheet(){
       }
       closeSheet();
       toast(t('savedCount').replace('{n}', entries.length+lines.length));
-    };
+    });
   });
 }
 /* ---- Expense form ---- */
@@ -3283,7 +3345,7 @@ function openExpenseSheet(){
       if(ok) ok.hidden=false;
     };
 
-    overlay.querySelector('#x-save').onclick=async function(){
+    once(overlay.querySelector('#x-save'), async function(){
       var isTreasury = STATE.session.role==='treasury';
       var entries=inputs.map(function(inp){
         var cat=inp.getAttribute('data-amt');
@@ -3291,6 +3353,20 @@ function openExpenseSheet(){
         return {cat:cat, amount:Number(inp.value)||0, note:noteEl?noteEl.value.trim():''};
       }).filter(function(e){ return e.amount>0; });
       if(!entries.length){ toast(t('enterOne'),'err'); return; }
+      var bid2=isTreasury?null:STATE.session.branchId, dupE=null;
+      for(var d=0;d<entries.length;d++){
+        var ee=entries[d];
+        var hitE=recentDuplicate('expenses', function(r){
+          return r.branchId===bid2 && r.category===ee.cat && Number(r.amount)===ee.amount;
+        });
+        if(hitE!==null){ dupE=fmtMoney(ee.amount)+' '+catLabel(EXP_CATS,ee.cat); break; }
+      }
+      if(dupE){
+        var goE=await confirmDuplicate('expenses', function(r){
+          return r.branchId===bid2 && Number(r.amount)===entries[0].amount;
+        }, dupE);
+        if(!goE) return;
+      }
       var now=new Date().toISOString(), dk=now.slice(0,10);
       for(var k=0;k<entries.length;k++){
         var e=entries[k];
@@ -3306,7 +3382,7 @@ function openExpenseSheet(){
       }
       closeSheet();
       toast(t('savedCount').replace('{n}', entries.length));
-    };
+    });
   });
 }
 /* ---- Handover create ---- */
@@ -3317,14 +3393,14 @@ function openHandoverSheet(){
     '<div class="field"><label>'+t('handoverNote')+'</label><textarea id="ho-note" placeholder="'+t('notePh')+'"></textarea></div>'+
     '<button class="btn btn-primary btn-block" id="ho-submit">'+icon('handover')+t('createHandover')+'</button>';
   openSheet(t('createHandover'),body,function(overlay){
-    overlay.querySelector('#ho-submit').onclick=function(){
+    once(overlay.querySelector('#ho-submit'), function(){
       var amt=Number(overlay.querySelector('#ho-amount').value);
       if(!amt||amt<=0){ toast(t('errFill'),'err'); return; }
       askConfirm(t('confirmHandoverMsg'),async function(){
         await Store.add('handovers',{branchId:bId,declaredAmount:amt,note:(overlay.querySelector('#ho-note').value||'').trim(),status:'pending',managerId:STATE.session.id,managerName:STATE.session.name,createdAt:new Date().toISOString()});
         closeSheet(); toast(t('handoverCreated'));
       });
-    };
+    });
   });
 }
 /* ---- Collector confirm pickup ---- */
@@ -3335,12 +3411,12 @@ function openCollectSheet(id){
     '<div class="field"><label>'+t('collectorNote')+'</label><textarea id="col-note" placeholder="'+t('notePh')+'"></textarea></div>'+
     '<button class="btn btn-primary btn-block" id="col-submit">'+icon('check')+t('collectBtn')+'</button>';
   openSheet(t('collectBtn'),body,function(overlay){
-    overlay.querySelector('#col-submit').onclick=async function(){
+    once(overlay.querySelector('#col-submit'), async function(){
       var amt=Number(overlay.querySelector('#col-amount').value);
       if(amt<0||isNaN(amt)){ toast(t('errFill'),'err'); return; }
       await Store.update('handovers',id,{status:'collected',collectorId:STATE.session.id,collectorName:STATE.session.name,collectedAmount:amt,collectedNote:(overlay.querySelector('#col-note').value||'').trim(),collectedAt:new Date().toISOString()});
       closeSheet(); toast(t('pickupConfirmed'));
-    };
+    });
   });
 }
 /* ---- Treasury confirm receipt ---- */
@@ -3351,12 +3427,12 @@ function openConfirmReceiptSheet(id){
     '<div class="field"><label>'+t('note')+'</label><textarea id="trs-note" placeholder="'+t('notePh')+'"></textarea></div>'+
     '<button class="btn btn-primary btn-block" id="trs-submit">'+icon('check')+t('confirmReceiptBtn')+'</button>';
   openSheet(t('confirmReceiptBtn'),body,function(overlay){
-    overlay.querySelector('#trs-submit').onclick=async function(){
+    once(overlay.querySelector('#trs-submit'), async function(){
       var amt=Number(overlay.querySelector('#trs-amount').value);
       if(amt<0||isNaN(amt)){ toast(t('errFill'),'err'); return; }
       await Store.update('handovers',id,{status:'confirmed',treasuryId:STATE.session.id,treasuryName:STATE.session.name,confirmedAmount:amt,confirmedNote:(overlay.querySelector('#trs-note').value||'').trim(),confirmedAt:new Date().toISOString()});
       closeSheet(); toast(t('receiptConfirmed'));
-    };
+    });
   });
 }
 /* ---- Admin: add city/branch ---- */
@@ -3365,12 +3441,12 @@ function openCitySheet(){
     '<div class="field"><label>'+t('cityNameEn')+'</label><input type="text" id="c-en"></div>'+
     '<button class="btn btn-primary btn-block" id="c-submit">'+icon('check')+t('save')+'</button>';
   openSheet(t('addCity'),body,function(overlay){
-    overlay.querySelector('#c-submit').onclick=async function(){
+    once(overlay.querySelector('#c-submit'), async function(){
       var ar=overlay.querySelector('#c-ar').value.trim(), en=overlay.querySelector('#c-en').value.trim();
       if(!ar||!en){ toast(t('errFill'),'err'); return; }
       await Store.add('cities',{nameAr:ar,nameEn:en,order:Object.keys(STATE.data.cities).length});
       closeSheet(); toast(t('savedOk'));
-    };
+    });
   });
 }
 function openBranchSheet(){
@@ -3383,12 +3459,12 @@ function openBranchSheet(){
     '<div class="field"><label>'+t('collectorLbl')+'</label><input type="text" id="b-col" placeholder="'+t('optional')+'"></div>'+
     '<button class="btn btn-primary btn-block" id="b-submit">'+icon('check')+t('save')+'</button>';
   openSheet(t('addBranch'),body,function(overlay){
-    overlay.querySelector('#b-submit').onclick=async function(){
+    once(overlay.querySelector('#b-submit'), async function(){
       var ar=overlay.querySelector('#b-ar').value.trim(), en=overlay.querySelector('#b-en').value.trim(), cityId=overlay.querySelector('#b-city').value;
       if(!ar||!en||!cityId){ toast(t('errFill'),'err'); return; }
       await Store.add('branches',{nameAr:ar,nameEn:en,cityId:cityId,managerName:overlay.querySelector('#b-mgr').value.trim(),areaManagerName:overlay.querySelector('#b-area').value.trim(),collectorName:overlay.querySelector('#b-col').value.trim(),active:true,order:Object.keys(STATE.data.branches).length});
       closeSheet(); toast(t('savedOk'));
-    };
+    });
   });
 }
 
