@@ -369,6 +369,48 @@ button{font-family:inherit}
 .link-warn .lw-body b{display:block;font-size:13.5px;color:var(--gold)}
 .link-warn .lw-body span{display:block;margin-top:3px;font-size:11.5px;color:var(--ink-dim);line-height:1.6}
 
+/* ---------- date range calendar ---------- */
+.cal{margin-bottom:16px}
+.cal-presets{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:16px}
+.cal-presets .fchip{font-size:11.5px;padding:6px 11px}
+.cal-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+.cal-title{font-family:var(--font-display);font-weight:800;font-size:15.5px}
+.cal-nav{width:36px;height:36px;flex:none;border-radius:11px;cursor:pointer;display:flex;
+  align-items:center;justify-content:center;background:var(--surface);border:1px solid var(--line);
+  color:var(--ink-dim);transition:all .18s}
+.cal-nav:hover{border-color:var(--brand);color:var(--brand-lift);background:rgba(201,160,77,.1)}
+.cal-nav svg{width:17px;height:17px}
+.cal-week{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:6px}
+.cal-week span{text-align:center;font-size:10px;font-weight:800;color:var(--ink-faint)}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.cal-cell{aspect-ratio:1;border:none;border-radius:11px;cursor:pointer;display:flex;
+  align-items:center;justify-content:center;background:rgba(255,255,255,.035);color:var(--ink-dim);
+  font-family:var(--font-mono);font-size:13px;font-weight:600;
+  transition:background .15s,color .15s,transform .12s}
+.cal-cell:hover:not(.blank){background:rgba(255,255,255,.1);color:var(--ink)}
+.cal-cell:active:not(.blank){transform:scale(.92)}
+.cal-cell.blank{background:transparent;pointer-events:none}
+.cal-cell.future{opacity:.38}
+.cal-cell.today{box-shadow:inset 0 0 0 1.5px rgba(201,160,77,.55);color:var(--brand-lift)}
+.cal-cell.inrange{background:rgba(201,160,77,.17);color:var(--brand-lift);border-radius:4px}
+.cal-cell.edge{background:linear-gradient(135deg,var(--brand-lift),var(--brand));color:#241802;
+  font-weight:800;box-shadow:0 6px 18px -6px rgba(201,160,77,.75)}
+.cal-cell.edge.start{border-radius:4px 11px 11px 4px}
+.cal-cell.edge.end{border-radius:11px 4px 4px 11px}
+.cal-cell.single{border-radius:11px!important}
+.cal-foot{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:16px;padding:14px;
+  border-radius:14px;border:1px solid var(--line);background:rgba(255,255,255,.03)}
+.cal-field{flex:1;min-width:92px}
+.cal-field span{display:block;font-size:9.5px;font-weight:800;letter-spacing:.11em;
+  text-transform:uppercase;color:var(--ink-faint)}
+.cal-field b{display:block;margin-top:4px;font-size:13.5px}
+.cal-field.active b{color:var(--brand-lift)}
+.cal-arrow{color:var(--ink-faint);font-size:16px}
+.cal-span{padding:5px 11px;border-radius:99px;font-size:11px;font-weight:800;
+  background:rgba(201,160,77,.16);color:var(--brand-lift);border:1px solid rgba(201,160,77,.35)}
+.cal-hint{margin-top:10px;text-align:center;font-size:11.5px;color:var(--ink-faint)}
+.btn[disabled]{opacity:.4;cursor:not-allowed;box-shadow:none}
+
 /* ---------- custom dropdown ---------- */
 .xsel{position:relative;width:100%}
 .xsel>select{position:absolute;opacity:0;pointer-events:none;width:0;height:0}
@@ -1124,6 +1166,16 @@ fHiding:{ar:"لا توجد بيانات في الفترة المحددة",en:"No
 fHidingSub:{ar:"أنت تعرض ({r}) — البيانات المسجّلة في أيام أخرى مخفية",en:"You are viewing ({r}) — entries from other days are hidden"},
 fShowToday:{ar:"عرض اليوم",en:"Show today"},
 fShowAll:{ar:"عرض الكل",en:"Show all"},
+calPickStart:{ar:"اختر تاريخ البداية",en:"Pick the start date"},
+calPickEnd:{ar:"اختر تاريخ النهاية",en:"Pick the end date"},
+calStart:{ar:"من",en:"From"},
+calEnd:{ar:"إلى",en:"To"},
+calDays:{ar:"{n} يوم",en:"{n} days"},
+calLastMonth:{ar:"الشهر الماضي",en:"Last month"},
+calLast7:{ar:"آخر ٧ أيام",en:"Last 7 days"},
+calLast30:{ar:"آخر ٣٠ يوم",en:"Last 30 days"},
+calThisMonth:{ar:"هذا الشهر",en:"This month"},
+calToday:{ar:"اليوم",en:"Today"},
 fStaleReset:{ar:"أُعيدت الفترة إلى اليوم",en:"Period reset to today"},
 appVersion:{ar:"إصدار التطبيق",en:"App version"},
 checkUpdate:{ar:"تحديث التطبيق",en:"Update app"},
@@ -1254,16 +1306,23 @@ var Store = (function(){
      The endpoint URL is never committed to the repository: it is supplied
      once per device, either by pasting it in Admin > Integration or by
      opening the app with ?api=<url>, and then kept in localStorage. */
+  /* Every device should sync out of the box, so the endpoint ships with the
+     app and each device may still override it. Note this is a public page:
+     anyone who reads its source can reach the sheet, so treat this URL as the
+     key to the data and re-deploy the Apps Script to revoke it. */
+  var DEFAULT_API='https://script.google.com/macros/s/AKfycbzalWl40ITDmSrNWt_BxL1bW4eBs21nJxJSM0hGQucZPnq1RZhcuhgOh6KaEDg4iPiFfg/exec';
   function readApiUrl(){
     try{
       var q=new URLSearchParams(location.search).get('api');
       if(q){ localStorage.setItem(API_KEY, q); history.replaceState({},'',location.pathname); return q; }
-      return localStorage.getItem(API_KEY)||null;
-    }catch(e){ return null; }
+      var saved=localStorage.getItem(API_KEY);
+      if(saved==='none') return null;              // explicitly disconnected
+      return saved||DEFAULT_API;
+    }catch(e){ return DEFAULT_API; }
   }
   function setApiUrl(u){
     apiUrl=u||null;
-    try{ u ? localStorage.setItem(API_KEY,u) : localStorage.removeItem(API_KEY); }catch(e){}
+    try{ localStorage.setItem(API_KEY, u || 'none'); }catch(e){}
   }
   function blankDb(){ var o={}; COLS.forEach(function(c){ o[c]={}; }); return o; }
   async function apiGet(url){
@@ -2010,21 +2069,106 @@ function filterBar(){
       (r.key==='custom'&&r.from&&r.to?'<span class="fb-range">'+rangeLabel()+'</span>':t('fCustom'))+'</button>'+
   '</div>';
 }
-function openRangeSheet(){
-  var r=STATE.range, today=new Date().toISOString().slice(0,10);
-  var body='<div class="grid2">'+
-      '<div class="field"><label>'+t('fFrom')+'</label><input type="date" id="r-from" value="'+(r.from||today)+'"></div>'+
-      '<div class="field"><label>'+t('fTo')+'</label><input type="date" id="r-to" value="'+(r.to||today)+'"></div>'+
+/* A real calendar: tap a start day, tap an end day, with the span filled in
+   between. Native date inputs are drawn by the OS and cannot be themed. */
+var CAL = {view:null, start:null, end:null};
+function dOnly(d){ var x=new Date(d); x.setHours(0,0,0,0); return x; }
+function isoOf(d){
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+function monthTitle(d){
+  try{ return d.toLocaleDateString(STATE.lang==='ar'?'ar-SA-u-nu-latn':'en-GB',{month:'long',year:'numeric'}); }
+  catch(e){ return (d.getMonth()+1)+'/'+d.getFullYear(); }
+}
+function weekdayNames(){
+  return STATE.lang==='ar' ? ['ح','ن','ث','ر','خ','ج','س'] : ['S','M','T','W','T','F','S'];
+}
+function calendarHtml(){
+  var view=CAL.view, y=view.getFullYear(), m=view.getMonth();
+  var lead=new Date(y,m,1).getDay(), days=new Date(y,m+1,0).getDate();
+  var today=dOnly(new Date()).getTime();
+  var st=CAL.start?dOnly(CAL.start).getTime():null;
+  var en=CAL.end?dOnly(CAL.end).getTime():null;
+  var cells='';
+  for(var i=0;i<lead;i++) cells+='<div class="cal-cell blank"></div>';
+  for(var d=1;d<=days;d++){
+    var cur=new Date(y,m,d), tms=dOnly(cur).getTime(), cls='cal-cell';
+    if(st!==null&&en!==null&&tms>st&&tms<en) cls+=' inrange';
+    if(st!==null&&tms===st) cls+=' edge start';
+    if(en!==null&&tms===en) cls+=' edge end';
+    if(st!==null&&en!==null&&st===en&&tms===st) cls+=' single';
+    if(tms===today) cls+=' today';
+    if(tms>today) cls+=' future';
+    cells+='<button type="button" class="'+cls+'" data-day="'+isoOf(cur)+'">'+d+'</button>';
+  }
+  var span='';
+  if(CAL.start&&CAL.end){
+    var n=Math.round((dOnly(CAL.end)-dOnly(CAL.start))/86400000)+1;
+    span='<div class="cal-span">'+t('calDays').replace('{n}',n)+'</div>';
+  }
+  return '<div class="cal">'+
+    '<div class="cal-presets">'+
+      '<button type="button" class="fchip" data-preset="today">'+t('calToday')+'</button>'+
+      '<button type="button" class="fchip" data-preset="l7">'+t('calLast7')+'</button>'+
+      '<button type="button" class="fchip" data-preset="l30">'+t('calLast30')+'</button>'+
+      '<button type="button" class="fchip" data-preset="tm">'+t('calThisMonth')+'</button>'+
+      '<button type="button" class="fchip" data-preset="lm">'+t('calLastMonth')+'</button>'+
     '</div>'+
-    '<button class="btn btn-primary btn-block" id="r-apply">'+icon('check')+t('fApply')+'</button>';
-  openSheet(t('fCustom'),body,function(overlay){
-    overlay.querySelector('#r-apply').onclick=function(){
-      var f=overlay.querySelector('#r-from').value, to=overlay.querySelector('#r-to').value;
-      if(!f||!to){ toast(t('errFill'),'err'); return; }
-      if(new Date(f)>new Date(to)){ var sw=f; f=to; to=sw; }
-      STATE.range={key:'custom',from:f,to:to}; saveRange();
-      closeSheet(); renderView();
-    };
+    '<div class="cal-head">'+
+      '<button type="button" class="cal-nav" data-nav="-1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg></button>'+
+      '<div class="cal-title">'+monthTitle(view)+'</div>'+
+      '<button type="button" class="cal-nav" data-nav="1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></button>'+
+    '</div>'+
+    '<div class="cal-week">'+weekdayNames().map(function(w){return '<span>'+w+'</span>';}).join('')+'</div>'+
+    '<div class="cal-grid">'+cells+'</div>'+
+    '<div class="cal-foot">'+
+      '<div class="cal-field'+(CAL.start&&!CAL.end?' active':'')+'"><span>'+t('calStart')+'</span><b>'+(CAL.start?fmtDay(isoOf(CAL.start)):'—')+'</b></div>'+
+      '<div class="cal-arrow">→</div>'+
+      '<div class="cal-field"><span>'+t('calEnd')+'</span><b>'+(CAL.end?fmtDay(isoOf(CAL.end)):'—')+'</b></div>'+
+      span+
+    '</div>'+
+    '<div class="cal-hint">'+(!CAL.start||CAL.end?t('calPickStart'):t('calPickEnd'))+'</div>'+
+  '</div>'+
+  '<button class="btn btn-primary btn-block" id="cal-apply"'+(CAL.start&&CAL.end?'':' disabled')+'>'+icon('check')+t('fApply')+'</button>';
+}
+function openRangeSheet(){
+  var r=STATE.range;
+  CAL.start=(r.key==='custom'&&r.from)?new Date(r.from):null;
+  CAL.end  =(r.key==='custom'&&r.to)?new Date(r.to):null;
+  CAL.view =CAL.start?new Date(CAL.start):new Date();
+  CAL.view.setDate(1);
+  openSheet(t('fCustom'),'<div id="cal-mount">'+calendarHtml()+'</div>',function(overlay){
+    var mount=overlay.querySelector('#cal-mount');
+    function redraw(){ mount.innerHTML=calendarHtml(); }
+    mount.addEventListener('click',function(ev){
+      var nav=ev.target.closest('[data-nav]');
+      if(nav){ CAL.view.setMonth(CAL.view.getMonth()+Number(nav.getAttribute('data-nav'))); redraw(); return; }
+      var pre=ev.target.closest('[data-preset]');
+      if(pre){
+        var k=pre.getAttribute('data-preset'), now=dOnly(new Date());
+        if(k==='today'){ CAL.start=now; CAL.end=now; }
+        else if(k==='l7'){ var a=new Date(now); a.setDate(a.getDate()-6); CAL.start=a; CAL.end=now; }
+        else if(k==='l30'){ var b=new Date(now); b.setDate(b.getDate()-29); CAL.start=b; CAL.end=now; }
+        else if(k==='tm'){ CAL.start=new Date(now.getFullYear(),now.getMonth(),1); CAL.end=now; }
+        else if(k==='lm'){ CAL.start=new Date(now.getFullYear(),now.getMonth()-1,1); CAL.end=new Date(now.getFullYear(),now.getMonth(),0); }
+        CAL.view=new Date(CAL.start); CAL.view.setDate(1); redraw(); return;
+      }
+      var day=ev.target.closest('[data-day]');
+      if(day){
+        var picked=new Date(day.getAttribute('data-day'));
+        /* First tap sets the start; the next closes the range. Tapping before
+           the start simply restarts from there. */
+        if(!CAL.start||CAL.end){ CAL.start=picked; CAL.end=null; }
+        else if(dOnly(picked)<dOnly(CAL.start)){ CAL.start=picked; CAL.end=null; }
+        else CAL.end=picked;
+        redraw(); return;
+      }
+      if(ev.target.closest('#cal-apply')){
+        if(!CAL.start||!CAL.end) return;
+        STATE.range={key:'custom',from:isoOf(CAL.start),to:isoOf(CAL.end)};
+        saveRange(); closeSheet(); renderView();
+      }
+    });
   });
 }
 
