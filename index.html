@@ -413,7 +413,6 @@ button{font-family:inherit}
 .mtotal span{display:block;font-size:9.5px;font-weight:800;letter-spacing:.11em;
   text-transform:uppercase;color:var(--ink-faint)}
 .mtotal b{display:block;margin-top:4px;font-size:21px;font-weight:600;color:var(--mint)}
-.mtotal>div#m-hosp-wrap b{color:var(--violet)}
 
 /* ---------- expense multi-entry extras ---------- */
 .xrow{flex-direction:column;align-items:stretch;gap:0}
@@ -958,10 +957,10 @@ var PAY_TYPES = [
   {id:"other", ar:"أخرى (STC Pay/تحويل)", en:"Other (STC Pay/Transfer)"},
   {id:"hospitality", ar:"ضيافة", en:"Hospitality"}
 ];
-/* Types that actually bring money in. ضيافة is tracked so the items leaving
-   the branch are recorded, but nothing is collected for it, so it must never
-   count as revenue nor as cash expected in the drawer. */
-var REVENUE_TYPES = ["pos","cash","other"];
+/* Every type counts toward sales revenue, including ضيافة. Cash on hand is
+   a separate calculation that only ever looks at the "cash" type, so a
+   non-cash sale still never inflates the money expected in the drawer. */
+var REVENUE_TYPES = ["pos","cash","other","hospitality"];
 var BILL_TYPES = [
   {id:"electricity", ar:"كهرباء",      en:"Electricity", ic:"alert"},
   {id:"internet",    ar:"إنترنت",      en:"Internet",    ic:"globe"},
@@ -1165,7 +1164,6 @@ totHospitality:{ar:"ضيافة",en:"Hospitality"},
 totRevenue:{ar:"الإيراد",en:"Revenue"},
 totNetwork:{ar:"إيراد الشبكة",en:"Network revenue"},
 totExpenses:{ar:"المصروفات",en:"Expenses"},
-notRevenue:{ar:"لا تُحتسب إيراداً",en:"not revenue"},
 expWhatFor:{ar:"على ماذا صُرف؟",en:"What was it for?"},
 enterOne:{ar:"أدخل مبلغاً واحداً على الأقل",en:"Enter at least one amount"},
 savedCount:{ar:"تم حفظ {n} عملية",en:"Saved {n} entries"},
@@ -1180,7 +1178,7 @@ reconAdd:{ar:"تسجيل إجمالي تاب سينس",en:"Record TopSense total
 reconDate:{ar:"تاريخ التقرير",en:"Report date"},
 reconTotal:{ar:"الإجمالي من نظام تاب سينس",en:"Total from TopSense"},
 reconNone:{ar:"لم يُسجَّل إجمالي تاب سينس لهذه الفترة",en:"No TopSense total recorded for this period"},
-reconNoteHint:{ar:"يُقارن بإيراد المبيعات المُدخلة (بدون الضيافة)",en:"Compared against entered revenue (hospitality excluded)"},
+reconNoteHint:{ar:"يُقارن بإجمالي المبيعات المُدخلة",en:"Compared against total entered sales"},
 reconSaved:{ar:"تم تسجيل إجمالي تاب سينس",en:"TopSense total recorded"},
 reconBranches:{ar:"فروع بها فروقات",en:"Branches with variance"},
 navRequests:{ar:"طلبات التعديل",en:"Edit Requests"},
@@ -2025,8 +2023,7 @@ function systemTotalFor(branchId, period){
     })
     .reduce(function(a,r){ return a+Number(r.systemTotal||0); },0);
 }
-/* Hospitality is given away and never appears in the till's revenue, so the
-   comparison uses revenue types only. */
+/* Compares the till total against every sale entered for the period. */
 function reconFor(branchId){
   var sys=systemTotalFor(branchId,'range');
   var entered=sumSalesByType(branchId,'range',null);
@@ -2977,15 +2974,14 @@ function openSaleSheet(){
     return '<div class="mrow" data-type="'+pt.id+'">'+
       '<div class="mrow-ic">'+icon(ics[pt.id]||'wallet','ic-s')+'</div>'+
       '<div class="mrow-label">'+catLabel(PAY_TYPES,pt.id)+
-        (pt.id==='hospitality'?'<i>'+t('notRevenue')+'</i>':'')+'</div>'+
+        '</div>'+
       '<div class="mrow-input"><input type="number" step="0.01" min="0" inputmode="decimal" '+
         'data-amt="'+pt.id+'" placeholder="0"><span>'+t('sar')+'</span></div>'+
     '</div>';
   }).join('');
 
   var body='<div class="mlist">'+rows+'</div>'+
-    '<div class="mtotal"><div><span>'+t('totRevenue')+'</span><b class="mono" id="m-rev">0</b></div>'+
-      '<div id="m-hosp-wrap" hidden><span>'+t('totHospitality')+'</span><b class="mono" id="m-hosp">0</b></div></div>'+
+    '<div class="mtotal"><div><span>'+t('totRevenue')+'</span><b class="mono" id="m-rev">0</b></div></div>'+
     '<div class="field" style="margin-top:16px"><label>'+t('note')+'</label>'+
       '<textarea id="m-note" placeholder="'+t('notePh')+'"></textarea></div>'+
     '<button class="btn btn-primary btn-block" id="m-save">'+icon('check')+t('save')+'</button>';
@@ -2993,15 +2989,13 @@ function openSaleSheet(){
   openSheet(t('addSale'),body,function(overlay){
     var inputs=Array.prototype.slice.call(overlay.querySelectorAll('[data-amt]'));
     function recalc(){
-      var rev=0, hosp=0;
+      var rev=0;
       inputs.forEach(function(inp){
         var v=Number(inp.value)||0;
-        if(inp.getAttribute('data-amt')==='hospitality') hosp+=v; else rev+=v;
+        rev+=v;
         inp.closest('.mrow').classList.toggle('filled', v>0);
       });
       overlay.querySelector('#m-rev').textContent=fmtMoney(rev);
-      overlay.querySelector('#m-hosp').textContent=fmtMoney(hosp);
-      overlay.querySelector('#m-hosp-wrap').hidden = hosp<=0;
     }
     inputs.forEach(function(inp){ inp.addEventListener('input',recalc); });
     recalc();
