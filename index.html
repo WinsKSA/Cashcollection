@@ -958,6 +958,121 @@ table.datatable tbody tr:hover{background:rgba(255,255,255,.025)}
 }
 .topbar-avatar:hover{filter:brightness(1.1)}
 .topbar-avatar:active{transform:scale(.93)}
+/* ===================== ROLE WALKTHROUGH =====================
+   An auto-playing, narrated run through the screens each role really sees.
+   The device frame and the caption sit in two separate flex zones, so the
+   explanation never covers any part of the demo screen. */
+.tour{position:fixed;inset:0;z-index:400;background:radial-gradient(130% 85% at 50% -10%,#141824 0%,var(--void) 62%);
+  display:flex;flex-direction:column;opacity:0;transition:opacity .35s ease}
+.tour.in{opacity:1}
+.tour-head{flex:none;display:flex;align-items:center;gap:11px;padding:calc(10px + env(safe-area-inset-top)) 16px 10px;border-bottom:1px solid var(--line)}
+.tour-head .logo-mark{width:30px;height:auto;color:var(--brand);flex:none}
+.tour-head h3{margin:0;font-size:14.5px;line-height:1.3}
+.tour-head .hint{font-size:11px;display:block}
+.tour-x{margin-inline-start:auto;width:36px;height:36px;flex:none;border-radius:12px;border:1px solid var(--line);background:var(--surface);color:var(--ink-dim);display:grid;place-items:center;cursor:pointer}
+.tour-x svg{width:17px;height:17px}
+.tour-roles{flex:none;display:flex;gap:7px;overflow-x:auto;padding:11px 16px 3px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.tour-roles::-webkit-scrollbar{display:none}
+.trole{flex:none;padding:7px 13px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--ink-dim);font:inherit;font-size:12px;cursor:pointer;white-space:nowrap;transition:.2s}
+.trole.on{background:linear-gradient(135deg,var(--brand),var(--brand-lift));color:#1A1206;border-color:transparent;font-weight:700}
+.tour-body{flex:1;min-height:0;display:flex;flex-direction:column;gap:12px;padding:10px 16px calc(14px + env(safe-area-inset-bottom))}
+.tour-stage{flex:1;min-height:0;display:grid;place-items:center}
+.tour-side{flex:none;display:flex;flex-direction:column;gap:10px}
+@media(min-width:900px){
+  .tour-body{flex-direction:row;align-items:stretch;gap:34px;padding:16px 34px 26px}
+  .tour-side{flex:0 0 380px;justify-content:center}
+}
+
+/* --- device frame --- */
+.phone{position:relative;height:100%;max-height:620px;aspect-ratio:300/620;max-width:100%;
+  border-radius:32px;background:var(--void-2);overflow:hidden;
+  box-shadow:var(--shadow-lg),0 0 80px -26px rgba(201,160,77,.45),inset 0 0 0 1px var(--line-bright)}
+.phone::after{content:"";position:absolute;top:7px;left:50%;transform:translateX(-50%);width:76px;height:5px;border-radius:4px;background:rgba(255,255,255,.14);z-index:9}
+.pv{position:absolute;top:0;left:0;width:300px;height:620px;transform-origin:top left;display:flex;flex-direction:column;background:var(--void);font-size:12px}
+
+/* --- mock kit --- */
+.pv-top{flex:none;display:flex;align-items:center;gap:8px;padding:18px 11px 9px;border-bottom:1px solid var(--line);background:rgba(10,12,18,.92)}
+.pv-top .logo-mark{width:22px;height:auto;color:var(--brand);flex:none}
+.pv-logo .logo-mark{width:58px;height:auto;color:var(--brand);margin:0 auto}
+.pv-tt{flex:1;min-width:0}
+.pv-tt b{font-size:12px;display:block;line-height:1.3}
+.pv-tt span{font-size:9px;color:var(--ink-faint);display:block;line-height:1.4}
+.pv-av{width:25px;height:25px;flex:none;border-radius:9px;background:linear-gradient(135deg,var(--brand),var(--brand-lift));color:#1A1206;display:grid;place-items:center;font-weight:800;font-size:11px}
+.pv-chips{flex:none;display:flex;gap:4px;padding:8px 11px 0;overflow:hidden}
+.pv-chip{padding:4px 8px;border-radius:999px;border:1px solid var(--line);background:var(--surface);font-size:9px;color:var(--ink-dim);white-space:nowrap}
+.pv-chip.on{background:linear-gradient(135deg,var(--brand),var(--brand-lift));color:#1A1206;border-color:transparent;font-weight:700}
+.pv-tot{flex:none;display:flex;gap:5px;padding:8px 11px 0}
+.pv-tot>div{flex:1;min-width:0;border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:6px 7px}
+.pv-tot span{font-size:8px;color:var(--ink-faint);display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pv-tot b{font-size:12px;display:block;margin-top:2px;white-space:nowrap}
+.pv-tot .up b{color:var(--mint)}
+.pv-tot .down b{color:var(--rose)}
+.pv-tot .gold b{color:var(--brand-lift)}
+.pv-body{flex:1;min-height:0;overflow:hidden;padding:9px 11px 10px;display:flex;flex-direction:column;gap:7px}
+.pv-sec{font-size:9px;color:var(--ink-faint);margin:2px 0 -1px;letter-spacing:.3px}
+.pv-card{border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:9px 10px}
+.pv-card.gold{border-color:rgba(201,160,77,.4);background:linear-gradient(135deg,rgba(201,160,77,.12),rgba(201,160,77,.03))}
+.pv-card.bad{border-color:rgba(255,107,107,.42);background:var(--rose-soft)}
+.pv-card.good{border-color:rgba(0,230,162,.4);background:var(--mint-soft)}
+.pv-row{display:flex;align-items:center;gap:8px;border:1px solid var(--line);background:var(--surface);border-radius:11px;padding:7px 9px}
+.pv-ic{width:25px;height:25px;flex:none;border-radius:8px;background:var(--elev);display:grid;place-items:center;color:var(--ink-dim)}
+.pv-ic svg{width:13px;height:13px}
+.pv-ic.gold{background:rgba(201,160,77,.18);color:var(--brand-lift)}
+.pv-ic.mint{background:var(--mint-soft);color:var(--mint)}
+.pv-rt{flex:1;min-width:0}
+.pv-rt b{font-size:10.5px;display:block;line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pv-rt span{font-size:8.5px;color:var(--ink-faint);display:block;line-height:1.4}
+.pv-amt{flex:none;font-size:11.5px;font-weight:700;white-space:nowrap}
+.pv-amt.up{color:var(--mint)}
+.pv-amt.down{color:var(--rose)}
+.pv-btn{border-radius:11px;padding:9px;text-align:center;font-size:11px;font-weight:700;background:linear-gradient(135deg,var(--brand),var(--brand-lift));color:#1A1206}
+.pv-btn.ghost{background:var(--surface);border:1px solid var(--line);color:var(--ink);font-weight:600}
+.pv-btn.mint{background:linear-gradient(135deg,var(--mint-deep),var(--mint));color:#04130D}
+.pv-fld{border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:7px 9px;display:flex;align-items:center;gap:7px}
+.pv-fld label{font-size:9.5px;color:var(--ink-dim);flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pv-fld b{font-size:11.5px;font-family:var(--font-mono)}
+.pv-fld .cur{font-size:8.5px;color:var(--ink-faint)}
+.pv-nav{flex:none;display:flex;border-top:1px solid var(--line);background:rgba(10,12,18,.96);padding:6px 2px 10px}
+.pv-nav>div{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:8px;color:var(--ink-faint);min-width:0}
+.pv-nav>div svg{width:15px;height:15px}
+.pv-nav>div.on{color:var(--brand-lift)}
+.pv-dim{position:absolute;inset:0;background:rgba(3,4,7,.62);z-index:4}
+.pv-sheet{position:absolute;left:0;right:0;bottom:0;z-index:5;background:var(--surface-solid);border-radius:20px 20px 0 0;border-top:1px solid var(--line-bright);padding:11px;box-shadow:0 -24px 60px -22px #000;display:flex;flex-direction:column;gap:7px;max-height:86%;animation:pvUp .5s cubic-bezier(.2,.9,.25,1) both}
+.pv-sheet h5{margin:0 0 2px;font-size:12px}
+@keyframes pvUp{from{transform:translateY(102%)}to{transform:translateY(0)}}
+.pv-flow{display:flex;align-items:flex-start;gap:3px}
+.pv-step{flex:1;text-align:center;font-size:8px;color:var(--ink-faint);line-height:1.3}
+.pv-step i{display:grid;place-items:center;width:21px;height:21px;margin:0 auto 3px;border-radius:50%;border:1.5px solid var(--line-bright);font-style:normal;font-size:9px;font-weight:700}
+.pv-step i svg{width:11px;height:11px}
+.pv-step.done i{background:var(--mint);color:#04130D;border-color:transparent}
+.pv-step.now i{background:linear-gradient(135deg,var(--brand),var(--brand-lift));color:#1A1206;border-color:transparent;box-shadow:0 0 0 4px rgba(201,160,77,.2)}
+.pv-hi{animation:pvHi 1.7s ease-in-out infinite}
+@keyframes pvHi{0%,100%{box-shadow:0 0 0 0 rgba(201,160,77,0)}50%{box-shadow:0 0 0 3px rgba(201,160,77,.38)}}
+.pv-in{animation:pvIn .5s cubic-bezier(.2,.9,.25,1) both}
+@keyframes pvIn{from{opacity:0;transform:translateY(9px)}to{opacity:1;transform:none}}
+.pv-lock{font-size:8.5px;color:var(--brand-lift);display:inline-flex;align-items:center;gap:4px}
+.pv-lock svg{width:10px;height:10px}
+
+/* --- caption + transport --- */
+.tour-cap{flex:none;border:1px solid var(--line);background:linear-gradient(135deg,rgba(255,255,255,.055),rgba(255,255,255,.02));border-radius:var(--r);padding:13px 15px}
+.tour-cap .n{font-size:10.5px;color:var(--brand-lift);font-weight:800;letter-spacing:.6px;font-family:var(--font-mono)}
+.tour-cap h4{margin:5px 0 6px;font-size:15.5px;line-height:1.35}
+.tour-cap p{margin:0;font-size:13px;line-height:1.8;color:var(--ink-dim)}
+@media(min-width:900px){ .tour-cap{min-height:180px} .tour-cap h4{font-size:19px} .tour-cap p{font-size:14px} }
+.tour-ctl{flex:none;display:flex;align-items:center;gap:9px}
+.tour-seg{flex:1;display:flex;gap:3px;min-width:0}
+.tour-seg i{flex:1;height:4px;border-radius:3px;background:var(--elev);position:relative;overflow:hidden;cursor:pointer}
+.tour-seg i b{position:absolute;top:0;bottom:0;inset-inline-start:0;width:0;background:linear-gradient(90deg,var(--brand),var(--brand-lift));border-radius:3px}
+.tour-seg i.done b{width:100%}
+.tbtn{width:38px;height:38px;flex:none;border-radius:12px;border:1px solid var(--line);background:var(--surface);color:var(--ink);display:grid;place-items:center;cursor:pointer;transition:.18s}
+.tbtn:active{transform:scale(.93)}
+.tbtn svg{width:16px;height:16px}
+.tbtn.main{background:linear-gradient(135deg,var(--brand),var(--brand-lift));color:#1A1206;border-color:transparent;width:44px;height:44px;box-shadow:var(--glow-brand)}
+.tbtn.main svg{width:18px;height:18px}
+.tbtn[data-t="next"] svg{transform:scaleX(-1)}
+[dir="ltr"] .tbtn[data-t="prev"] svg{transform:scaleX(-1)}
+[dir="ltr"] .tbtn[data-t="next"] svg{transform:none}
+
 </style>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500;600&display=swap">
 
@@ -1369,7 +1484,15 @@ period_week:{ar:"الأسبوع",en:"This Week"},
 period_all:{ar:"الكل",en:"All Time"},
 sar:{ar:"ر.س",en:"SAR"},
 darkMode:{ar:"ليلي",en:"Dark"},
-lightMode:{ar:"نهاري",en:"Light"}
+lightMode:{ar:"نهاري",en:"Light"},
+tourBtn:{ar:"شرح دوري — جولة إرشادية",en:"My role — guided walkthrough"},
+tourTitle:{ar:"شرح الأدوار خطوة بخطوة",en:"Every role, step by step"},
+tourSub:{ar:"عرض قصير لكل شاشة وما هو مطلوب منك",en:"A short run through every screen and what you must do"},
+tourOffer:{ar:"شاهد شرح دورك — أقل من دقيقتين",en:"Watch your role walkthrough — under two minutes"},
+tourOfferSub:{ar:"يشرح كل شاشة تراها وما المطلوب منك من الدخول حتى الخروج.",en:"It covers every screen you see and what is expected of you, sign-in to sign-out."},
+tourWatch:{ar:"شاهد الآن",en:"Watch now"},
+tourLater:{ar:"لاحقاً",en:"Later"},
+tourReplay:{ar:"إعادة الشرح",en:"Replay"}
 };
 function t(k){ var e=DICT[k]; if(!e) return k; return e[STATE.lang]||e.en; }
 function catLabel(list,id){ var f=list.filter(function(x){return x.id===id});if(!f.length)return id; return STATE.lang==='ar'?f[0].ar:f[0].en; }
@@ -2580,6 +2703,7 @@ function renderDashboard(role){
       (canLink?'<button class="btn btn-primary btn-sm" data-action="go-link">'+t('linkNow')+'</button>':'')+
     '</div>';
   } else banner='';
+  banner+=tourOfferCard();
   if(role==='manager') return banner+billAlertCard()+dashManager();
   if(role==='area') return banner+dashArea();
   if(role==='collector') return banner+dashCollector();
@@ -3677,10 +3801,514 @@ function openAccountSheet(){
   }
   var body='<div style="display:flex;align-items:center;gap:13px;margin-bottom:20px"><div class="avatar" style="width:48px;height:48px;font-size:18px;border-radius:15px">'+initials(STATE.session.name)+'</div><div><b style="font-size:16px;display:block">'+esc(STATE.session.name)+'</b><span class="hint">'+t('role'+cap(STATE.session.role))+(STATE.session.branchId?' · '+branchName(STATE.session.branchId):'')+'</span></div></div>'+
     switcher+
+    '<button class="btn btn-ghost btn-block" style="margin-bottom:10px" data-action="open-tour">'+icon('camera')+t('tourBtn')+'</button>'+
     '<button class="btn btn-ghost btn-block" data-action="logout">'+icon('logout')+t('notYou')+'</button>'+
     '<button class="btn btn-ghost btn-block" style="margin-top:10px" data-action="force-update">'+icon('clock')+t('checkUpdate')+'</button>'+
     '<div class="hint" style="text-align:center;margin-top:12px">'+t('appVersion')+': <span class="mono">'+APP_BUILD+'</span></div>';
   openSheet(t('myAccount'),body);
+}
+
+
+/* ===================== ROLE WALKTHROUGH =====================
+   Short, auto-playing, narrated run-throughs: one per role, showing the
+   screens that role really sees and what is expected of them end to end.
+   The caption lives in its own zone beside/below the device frame, so no
+   part of the demonstrated screen is ever covered by the explanation. */
+var TOUR=(function(){
+  var el=null, role='manager', idx=0, playing=true, finished=false;
+  var timer=null, dur=0, remain=0, endAt=0, bar=null, ro=null;
+
+  function L(ar,en){ return STATE.lang==='ar'?ar:en; }
+
+  /* ---------- miniature of the real app, drawn at a fixed 300x620 ---------- */
+  function scr(inner){ return '<div class="pv">'+inner+'</div>'; }
+  function top(title,sub,ini){
+    return '<div class="pv-top">'+logoMark()+'<div class="pv-tt"><b>'+title+'</b><span>'+sub+'</span></div><div class="pv-av">'+ini+'</div></div>';
+  }
+  function chips(list,on){
+    return '<div class="pv-chips">'+list.map(function(c,i){return '<span class="pv-chip'+(i===on?' on':'')+'">'+c+'</span>';}).join('')+'</div>';
+  }
+  function tot(items){
+    return '<div class="pv-tot">'+items.map(function(x){return '<div class="'+(x[2]||'')+'"><span>'+x[0]+'</span><b>'+x[1]+'</b></div>';}).join('')+'</div>';
+  }
+  function row(ic,title,sub,amt,cls,icls){
+    return '<div class="pv-row pv-in"><div class="pv-ic '+(icls||'')+'">'+icon(ic)+'</div>'+
+      '<div class="pv-rt"><b>'+title+'</b><span>'+sub+'</span></div>'+
+      (amt?'<div class="pv-amt '+(cls||'')+'">'+amt+'</div>':'')+'</div>';
+  }
+  function fld(label,val,hi){
+    return '<div class="pv-fld'+(hi?' pv-hi':'')+'"><label>'+label+'</label><b>'+val+'</b><span class="cur">'+t('sar')+'</span></div>';
+  }
+  function body(inner){ return '<div class="pv-body">'+(inner||back(role))+'</div>'; }
+  function back(r){
+    var m={
+      manager:[['sales',L('نقدي','Cash'),L('اليوم','Today'),'3,200','up'],
+               ['bank',L('بطاقة (مدى/بنكي)','Card (Mada/bank)'),L('اليوم','Today'),'5,900','up'],
+               ['expenses',L('صيانة','Maintenance'),L('اليوم','Today'),'-520','down']],
+      collector:[['handover',L('خريص','Khurais'),L('بانتظار الاستلام','Awaiting pickup'),'4,180',''],
+                 ['handover',L('اليرموك','Yarmouk'),L('بانتظار الاستلام','Awaiting pickup'),'3,760',''],
+                 ['check',L('قرطبة','Qurtubah'),L('مستلَم 12:05','Picked up 12:05'),'3,300','up']],
+      treasury:[['clock',L('خريص','Khurais'),L('بانتظار تأكيدك','Awaiting your confirmation'),'4,180',''],
+                ['clock',L('اليرموك','Yarmouk'),L('بانتظار تأكيدك','Awaiting your confirmation'),'3,760',''],
+                ['check',L('قرطبة','Qurtubah'),L('مؤكَّد 12:40','Confirmed 12:40'),'3,300','up']],
+      area:[['building',L('خريص','Khurais'),L('٩,٦٠٠ إيراد','9,600 revenue'),'4,180',''],
+            ['building',L('اليرموك','Yarmouk'),L('١١,٢٠٠ إيراد','11,200 revenue'),'3,760',''],
+            ['building',L('قرطبة','Qurtubah'),L('٨,٩٠٠ إيراد','8,900 revenue'),'3,300','']],
+      admin:[['building',L('١٢ فرعاً','12 branches'),L('نشطة','Active'),'',''],
+             ['handover',L('تسليمات اليوم','Handovers today'),L('٨ مكتملة · ٣ معلّقة','8 complete · 3 pending'),'',''],
+             ['alert',L('فواتير مستحقة','Bills due'),L('خلال ٥ أيام','within 5 days'),'4,200','down']]
+    };
+    return (m[r]||m.manager).map(function(x){ return row(x[0],x[1],x[2],x[3],x[4]); }).join('');
+  }
+  function nav(r,on){
+    var items=navByRole[r]||[];
+    return '<div class="pv-nav">'+items.map(function(n,i){
+      return '<div class="'+(i===on?'on':'')+'">'+icon(n[1])+'<span>'+t(n[2])+'</span></div>';
+    }).join('')+'</div>';
+  }
+  function sheet(title,inner){
+    return '<div class="pv-dim"></div><div class="pv-sheet"><h5>'+title+'</h5>'+inner+'</div>';
+  }
+  function flow(done){
+    var labels=[L('مدير الفرع','Manager'),L('المحصّل','Collector'),L('الخزينة','Treasury')];
+    return '<div class="pv-flow">'+labels.map(function(lb,i){
+      var cls=i<done?'done':(i===done?'now':'');
+      return '<div class="pv-step '+cls+'"><i>'+(i<done?icon('check'):(i+1))+'</i>'+lb+'</div>';
+    }).join('')+'</div>';
+  }
+  function login(who){
+    return scr('<div class="pv-body" style="justify-content:center;gap:9px;padding:20px 18px">'+
+      '<div class="pv-logo">'+logoMark('logo-glow')+'</div>'+
+      '<div class="pv-sec" style="text-align:center;margin:6px 0 8px">'+t('tagline')+'</div>'+
+      '<div class="pv-fld pv-hi"><label>'+L('اختر اسمك','Choose your name')+'</label><b style="font-size:10px">'+who+'</b></div>'+
+      '<div class="pv-fld"><label>'+L('الرقم السري (٤ أرقام)','PIN (4 digits)')+'</label><b>••••</b></div>'+
+      '<div class="pv-btn">'+L('دخول','Sign in')+'</div>'+
+      '<div class="pv-sec" style="text-align:center;margin-top:4px">'+L('رقمك مشفّر ولا يُحفظ كنص','Your PIN is hashed, never stored as text')+'</div>'+
+    '</div>');
+  }
+  var PER=[L('اليوم','Today'),L('أمس','Yest.'),L('٧ أيام','7 days'),L('الشهر','Month'),L('الكل','All')];
+  function acct(who,roleLbl,extra){
+    return sheet(L('حسابي','My account'),
+      '<div style="display:flex;align-items:center;gap:9px;margin-bottom:6px"><div class="pv-av" style="width:34px;height:34px;border-radius:12px;font-size:14px">'+who.slice(0,1)+'</div>'+
+      '<div class="pv-rt"><b style="font-size:12px">'+who+'</b><span>'+roleLbl+'</span></div></div>'+
+      (extra||'')+
+      '<div class="pv-btn ghost pv-hi">'+L('تسجيل الخروج','Sign out')+'</div>'+
+      '<div class="pv-btn ghost">'+L('تحديث التطبيق','Check for update')+'</div>');
+  }
+
+  /* ------------------------------ the tours ------------------------------ */
+  var TOURS={};
+
+  TOURS.manager=[
+    {d:7000, ar:{h:'الدخول بأمان',p:'اختر اسمك من القائمة، ثم أدخل رقمك السري المكوّن من ٤ أرقام. الرقم مشفّر ولا يُخزَّن كنص، ولا أحد يستطيع الدخول باسمك.'},
+      en:{h:'Signing in',p:'Pick your name from the list, then enter your 4-digit PIN. It is hashed, never stored as plain text, and nobody can sign in as you.'},
+      s:function(){ return login(L('أحمد — مدير فرع','Ahmad — Branch Manager')); }},
+    {d:9000, ar:{h:'لوحة فرعك',p:'أول شاشة تُظهر النقد المتوفر بالفرع = المبيعات النقدية − المصروفات − ما سلّمته. وفوقها شريط الفترة: اليوم، أمس، ٧ أيام، الشهر، الكل، أو تاريخ محدد — واختيارك يغيّر كل الأرقام في الشاشة.'},
+      en:{h:'Your branch board',p:'The first screen shows cash on hand = cash sales − expenses − what you handed over. Above it sits the period bar: today, yesterday, 7 days, month, all, or a chosen date — and it drives every number on the screen.'},
+      s:function(){ return scr(top(L('الرئيسية','Dashboard'),L('خريص · اليوم','Khurais · today'),L('أ','A'))+chips(PER,0)+
+        tot([[L('النقد المتوفر','Cash on hand'),'4,180','gold'],[L('الإيراد','Revenue'),'9,600','up'],[L('المصروفات','Expenses'),'520','down']])+
+        body('<div class="pv-sec">'+L('آخر الحركات','Latest activity')+'</div>'+
+          row('sales',L('نقدي','Cash'),L('قبل ١٢ دقيقة','12 min ago'),'3,200','up')+
+          row('bank',L('بطاقة (مدى/بنكي)','Card (Mada/bank)'),L('قبل ٢٥ دقيقة','25 min ago'),'5,900','up')+
+          row('expenses',L('صيانة','Maintenance'),L('قبل ساعة','1 h ago'),'-520','down'))+
+        nav('manager',0)); }},
+    {d:10000, ar:{h:'تسجيل المبيعات — كل الأنواع بحفظة واحدة',p:'اضغط «تسجيل عملية بيع» واملأ كل الأنواع في نفس الشاشة: بطاقة (مدى/بنكي)، نقدي، أخرى (STC Pay/تحويل)، ضيافة، ومبيعات التطبيقات. الإجمالي يتحدّث أمامك، ثم تحفظ مرة واحدة فقط — ولا حاجة لفتح الشاشة لكل نوع.'},
+      en:{h:'Recording sales — every type in one save',p:'Tap “Record a sale” and fill in every type on the same screen: card (Mada/bank), cash, other (STC Pay/transfer), hospitality and delivery-app sales. The total updates as you type, and you save once — no reopening the form per type.'},
+      s:function(){ return scr(top(L('المبيعات','Sales'),L('خريص · اليوم','Khurais · today'),L('أ','A'))+
+        body('')+nav('manager',1)+
+        sheet(L('تسجيل عملية بيع','Record a sale'),
+          fld(L('بطاقة (مدى/بنكي)','Card (Mada/bank)'),'5,900')+
+          fld(L('نقدي','Cash'),'3,200')+
+          fld(L('أخرى (STC Pay/تحويل)','Other (STC Pay/transfer)'),'300')+
+          fld(L('ضيافة','Hospitality'),'200')+
+          fld(L('تطبيقات التوصيل','Delivery apps'),'1,100')+
+          '<div class="pv-card good" style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:9.5px">'+L('الإجمالي','Total')+'</span><b style="font-size:14px;color:var(--mint)">10,700</b></div>'+
+          '<div class="pv-btn pv-hi">'+L('حفظ','Save')+'</div>')); }},
+    {d:9000, ar:{h:'تاريخ العملية — حتى ٣ أيام سابقة',p:'في أعلى شاشة التسجيل اختر اليوم، أمس، أو أي يوم من آخر ثلاثة أيام. تُحفظ الحركة على اليوم الذي اخترته وتُعلَّم «بأثر رجعي»، وتحسبها الفلاتر والتقارير في يومها الصحيح.'},
+      en:{h:'Entry date — up to three days back',p:'At the top of the form pick today, yesterday or any of the last three days. The entry is stored against the day you chose, tagged “backdated”, and every filter and report counts it on its real day.'},
+      s:function(){ return scr(top(L('المبيعات','Sales'),L('خريص','Khurais'),L('أ','A'))+body('')+nav('manager',1)+
+        sheet(L('تسجيل عملية بيع','Record a sale'),
+          '<div class="pv-sec">'+L('تاريخ العملية','Entry date')+'</div>'+
+          '<div class="pv-chips pv-hi" style="padding:0;border-radius:10px">'+
+            '<span class="pv-chip on">'+L('اليوم','Today')+'</span><span class="pv-chip">'+L('أمس','Yesterday')+'</span>'+
+            '<span class="pv-chip">'+L('السبت ٢٦','Sat 26')+'</span><span class="pv-chip">'+L('الجمعة ٢٥','Fri 25')+'</span></div>'+
+          fld(L('نقدي','Cash'),'3,200')+
+          fld(L('بطاقة (مدى/بنكي)','Card (Mada/bank)'),'5,900')+
+          '<div class="pv-card"><span style="font-size:9px;color:var(--ink-faint)">'+L('تُسجَّل باسمك وبوقت إدخالها الحقيقي، وتظهر بعلامة «بأثر رجعي».','Saved under your name with the real entry time and shown with a “backdated” tag.')+'</span></div>'+
+          '<div class="pv-btn">'+L('حفظ','Save')+'</div>')); }},
+    {d:9500, ar:{h:'مطابقة تاب سينس (TopSense)',p:'اكتب إجمالي مبيعات نظام تاب سينس لليوم. التطبيق يقارنه بما أدخلته ويُظهر الفرق فوراً: أخضر إذا مطابق، وأحمر إذا هناك فرق — فتعالج السبب قبل نهاية اليوم بدل اكتشافه آخر الشهر.'},
+      en:{h:'TopSense reconciliation',p:'Enter the day’s TopSense system total. The app compares it with what you entered and shows the variance at once: green when it matches, red when it does not — so you fix the cause the same day instead of at month end.'},
+      s:function(){ return scr(top(L('المبيعات','Sales'),L('خريص · اليوم','Khurais · today'),L('أ','A'))+chips(PER,0)+
+        body('<div class="pv-sec">'+L('مطابقة تاب سينس','TopSense reconciliation')+'</div>'+
+          '<div class="pv-card bad pv-hi"><div style="display:flex;justify-content:space-between;font-size:9.5px"><span>'+L('إجمالي تاب سينس','TopSense total')+'</span><b style="font-family:var(--font-mono)">10,580</b></div>'+
+          '<div style="display:flex;justify-content:space-between;font-size:9.5px;margin-top:5px"><span>'+L('المسجّل بالتطبيق','Entered in the app')+'</span><b style="font-family:var(--font-mono)">10,700</b></div>'+
+          '<div style="display:flex;justify-content:space-between;margin-top:7px;padding-top:7px;border-top:1px solid var(--line)"><span style="font-size:10px">'+L('الفرق','Variance')+'</span><b style="color:var(--rose);font-size:13px">-120</b></div></div>'+
+          row('sales',L('نقدي','Cash'),L('اليوم','Today'),'3,200','up')+
+          row('bank',L('بطاقة','Card'),L('اليوم','Today'),'5,900','up'))+
+        nav('manager',1)); }},
+    {d:8000, ar:{h:'المصروفات',p:'نفس الأسلوب: افتح شاشة المصروف، اكتب أكثر من بند في نفس المرة، واختر تاريخ اليوم أو أحد الأيام الثلاثة السابقة. كل مصروف يُخصم مباشرة من النقد المتوفر بالفرع.'},
+      en:{h:'Expenses',p:'Same pattern: open the expense form, enter several lines in one pass, and pick today or one of the last three days. Every expense is deducted straight from the branch cash on hand.'},
+      s:function(){ return scr(top(L('المصروفات','Expenses'),L('خريص','Khurais'),L('أ','A'))+body('')+nav('manager',2)+
+        sheet(L('تسجيل مصروف','Record an expense'),
+          '<div class="pv-chips" style="padding:0"><span class="pv-chip on">'+L('اليوم','Today')+'</span><span class="pv-chip">'+L('أمس','Yesterday')+'</span><span class="pv-chip">'+L('السبت ٢٦','Sat 26')+'</span></div>'+
+          fld(L('صيانة','Maintenance'),'320')+
+          fld(L('مستلزمات','Supplies'),'200')+
+          '<div class="pv-fld"><label>'+L('الوصف','Note')+'</label><b style="font-size:9.5px">'+L('تصليح ثلاجة','Fridge repair')+'</b></div>'+
+          '<div class="pv-card" style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:9.5px">'+L('إجمالي المصروف','Total expense')+'</span><b style="font-size:13px;color:var(--rose)">520</b></div>'+
+          '<div class="pv-btn pv-hi">'+L('حفظ','Save')+'</div>')); }},
+    {d:10000, ar:{h:'تسليم النقد — الخطوة ١ من ٣',p:'من «التسليم النقدي» يظهر المبلغ المستحق محسوباً تلقائياً: المبيعات النقدية ناقص المصروفات. اختر المحصّل وأكّد — وهنا تبدأ دورة الاعتماد الثلاثية. لا تسلّم نقداً بدون تسجيله هنا.'},
+      en:{h:'Handing over cash — step 1 of 3',p:'In “Cash handover” the due amount is calculated for you: cash sales minus expenses. Choose the collector and confirm — that starts the three-step approval chain. Never hand cash over without recording it here.'},
+      s:function(){ return scr(top(L('التسليم النقدي','Cash handover'),L('خريص','Khurais'),L('أ','A'))+body('')+nav('manager',4)+
+        sheet(L('تسليم للمحصّل','Hand over to the collector'),
+          '<div class="pv-card gold"><span style="font-size:9px;color:var(--ink-dim)">'+L('المبلغ المستحق للتسليم','Amount due for handover')+'</span><b style="display:block;font-size:19px;margin-top:3px;color:var(--brand-lift)">4,180 <span style="font-size:10px">'+t('sar')+'</span></b>'+
+          '<span style="font-size:8.5px;color:var(--ink-faint)">'+L('نقدي 4,700 − مصروفات 520','cash 4,700 − expenses 520')+'</span></div>'+
+          '<div class="pv-fld"><label>'+L('المحصّل','Collector')+'</label><b style="font-size:10px">'+L('خالد','Khaled')+'</b></div>'+
+          flow(0)+
+          '<div class="pv-btn pv-hi">'+L('تأكيد التسليم','Confirm handover')+'</div>')); }},
+    {d:10000, ar:{h:'بعد التأكيد يُقفل السجل',p:'ما تؤكّده لا تستطيع تعديله أو حذفه بنفسك. إذا احتجت تصحيحاً اضغط «طلب تعديل» واكتب السبب؛ يصل الطلب للمحاسب/الخزينة، ولا يتغيّر أي رقم قبل موافقته. هكذا تبقى الأرقام موثوقة.'},
+      en:{h:'Once confirmed, the record locks',p:'What you confirm you cannot edit or delete yourself. If a correction is needed, tap “Request edit” and give the reason; it goes to the accountant/treasury, and nothing changes until they approve. That is what keeps the numbers trustworthy.'},
+      s:function(){ return scr(top(L('المبيعات','Sales'),L('خريص','Khurais'),L('أ','A'))+chips(PER,0)+
+        body('<div class="pv-sec">'+L('حركات مؤكَّدة','Confirmed entries')+'</div>'+
+          '<div class="pv-row pv-in pv-hi"><div class="pv-ic gold">'+icon('sales')+'</div><div class="pv-rt"><b>'+L('نقدي 3,200','Cash 3,200')+'</b><span class="pv-lock">'+icon('check')+L('مقفل — للتعديل اطلب الإذن','Locked — request permission to edit')+'</span></div></div>'+
+          '<div class="pv-btn ghost">'+L('طلب تعديل','Request edit')+'</div>'+
+          '<div class="pv-card"><span style="font-size:9px;color:var(--ink-faint)">'+L('يصل الطلب للمحاسب، ويظهر لك قراره داخل التطبيق.','The request reaches the accountant and their decision appears in the app.')+'</span></div>'+
+          row('expenses',L('صيانة 520','Maintenance 520'),L('مقفل','Locked'),'','',''))+
+        nav('manager',1)); }},
+    {d:8000, ar:{h:'الخروج وتبديل الدور',p:'اضغط دائرة اسمك أعلى الشاشة — موجودة في الجوال والكمبيوتر — ثم «تسجيل الخروج». وإذا كان لك أكثر من دور تقدر تبدّل بينها من نفس القائمة بدون إعادة تسجيل دخول.'},
+      en:{h:'Signing out and switching role',p:'Tap the circle with your initial at the top — it is there on phone and desktop — then “Sign out”. If you hold more than one role you can switch between them from the same menu without signing in again.'},
+      s:function(){ return scr(top(L('الرئيسية','Dashboard'),L('خريص','Khurais'),L('أ','A'))+body('')+nav('manager',0)+
+        acct(L('أحمد','Ahmad'),L('مدير فرع · خريص','Branch Manager · Khurais'))); }}
+  ];
+
+  TOURS.collector=[
+    {d:6500, ar:{h:'الدخول',p:'اختر اسمك ثم أدخل رقمك السري. تظهر لك فقط الفروع المسنَدة إليك كمحصّل.'},
+      en:{h:'Signing in',p:'Choose your name and enter your PIN. You only ever see the branches assigned to you as collector.'},
+      s:function(){ return login(L('خالد — محصّل','Khaled — Collector')); }},
+    {d:9000, ar:{h:'ما ينتظرك اليوم',p:'لوحتك تعرض كل مبلغ أعلنه مديرو فروعك وينتظر استلامك. لكل بطاقة: الفرع، المبلغ، ووقت الإعلان. ما لم تستلمه بعد يظهر بعلامة «بانتظار الاستلام».'},
+      en:{h:'What is waiting for you',p:'Your board lists every amount your branch managers declared and that is waiting for you. Each card shows the branch, the amount and when it was declared. Anything not yet picked up is tagged “awaiting pickup”.'},
+      s:function(){ return scr(top(L('الرئيسية','Dashboard'),L('٣ فروع · اليوم','3 branches · today'),L('خ','K'))+chips(PER,0)+
+        tot([[L('بانتظار الاستلام','Awaiting pickup'),'11,240','gold'],[L('استلمته اليوم','Picked up today'),'6,900','up'],[L('عدد التسليمات','Handovers'),'5','']])+
+        body(row('handover',L('خريص','Khurais'),L('بانتظار الاستلام · 10:40','Awaiting pickup · 10:40'),'4,180','','gold')+
+          row('handover',L('اليرموك','Yarmouk'),L('بانتظار الاستلام · 11:15','Awaiting pickup · 11:15'),'3,760','','gold')+
+          row('handover',L('قرطبة','Qurtubah'),L('بانتظار الاستلام · 11:50','Awaiting pickup · 11:50'),'3,300','','gold'))+
+        nav('collector',0)); }},
+    {d:10000, ar:{h:'عُدّ النقد قبل التأكيد — الخطوة ٢ من ٣',p:'افتح البطاقة، قارن النقد في يدك بالمبلغ المعلن، ثم أكّد. تأكيدك يعني أنك استلمت هذا المبلغ فعلاً وأصبح في عهدتك أنت — فلا تؤكّد قبل العدّ.'},
+      en:{h:'Count the cash before you confirm — step 2 of 3',p:'Open the card, compare the cash in your hand with the declared amount, then confirm. Confirming means you really received that amount and it is now in your custody — so never confirm before counting.'},
+      s:function(){ return scr(top(L('التسليم النقدي','Cash handover'),L('خريص','Khurais'),L('خ','K'))+body('')+nav('collector',1)+
+        sheet(L('تأكيد الاستلام','Confirm pickup'),
+          '<div class="pv-card gold"><span style="font-size:9px;color:var(--ink-dim)">'+L('المبلغ المعلن من الفرع','Amount declared by the branch')+'</span><b style="display:block;font-size:19px;margin-top:3px;color:var(--brand-lift)">4,180 <span style="font-size:10px">'+t('sar')+'</span></b></div>'+
+          '<div class="pv-fld"><label>'+L('الفرع','Branch')+'</label><b style="font-size:10px">'+L('خريص','Khurais')+'</b></div>'+
+          '<div class="pv-fld"><label>'+L('أعلنه','Declared by')+'</label><b style="font-size:10px">'+L('أحمد','Ahmad')+'</b></div>'+
+          flow(1)+
+          '<div class="pv-btn pv-hi">'+L('تأكيد الاستلام','Confirm receipt')+'</div>')); }},
+    {d:8500, ar:{h:'المبلغ أصبح في عهدتك',p:'بمجرد التأكيد تتحوّل البطاقة إلى «مع المحصّل» وينتقل الدور تلقائياً للخزينة. يظهر اسمك ووقت استلامك في سلسلة الاعتماد — سجل لا يمكن تغييره.'},
+      en:{h:'The amount is now in your custody',p:'The moment you confirm, the card turns to “with the collector” and the chain moves to treasury automatically. Your name and the time are stamped on the approval chain — a record nobody can alter.'},
+      s:function(){ return scr(top(L('التسليم النقدي','Cash handover'),L('خريص','Khurais'),L('خ','K'))+chips(PER,0)+
+        body('<div class="pv-card good">'+flow(2)+'</div>'+
+          row('check',L('استلمتَه','You picked it up'),L('اليوم 12:05 · خالد','Today 12:05 · Khaled'),'4,180','up','mint')+
+          row('clock',L('بانتظار الخزينة','Waiting on treasury'),L('الخطوة ٣ من ٣','Step 3 of 3'),'','','')) +
+        nav('collector',1)); }},
+    {d:8000, ar:{h:'سجلك وفلاتر الفترة',p:'شريط الفترة فوق كل شاشة: اليوم، أمس، ٧ أيام، الشهر، الكل، أو تاريخ محدد. استخدمه لتراجع ما استلمته في أي فترة، والإجماليات تتغيّر معه فوراً.'},
+      en:{h:'Your history and the period filters',p:'The period bar sits above every screen: today, yesterday, 7 days, month, all, or a chosen date. Use it to review what you collected in any period — the totals follow instantly.'},
+      s:function(){ return scr(top(L('التسليم النقدي','Cash handover'),L('سجل الاستلام','Pickup history'),L('خ','K'))+chips(PER,2)+
+        tot([[L('استلمته','Collected'),'52,400','up'],[L('سُلّم للخزينة','To treasury'),'48,200','gold'],[L('في عهدتي','In custody'),'4,200','']])+
+        body(row('check',L('خريص','Khurais'),L('الأحد','Sunday'),'4,180','up','mint')+
+          row('check',L('اليرموك','Yarmouk'),L('السبت','Saturday'),'3,760','up','mint')+
+          row('check',L('قرطبة','Qurtubah'),L('الجمعة','Friday'),'3,300','up','mint'))+
+        nav('collector',1)); }},
+    {d:7500, ar:{h:'الخروج',p:'اضغط دائرة اسمك أعلى الشاشة ثم «تسجيل الخروج». لا تترك الجهاز مفتوحاً باسمك، فكل تأكيد يُسجَّل باسم من سجّل دخوله.'},
+      en:{h:'Signing out',p:'Tap the circle with your initial at the top, then “Sign out”. Never leave a device signed in as you — every confirmation is recorded under whoever is signed in.'},
+      s:function(){ return scr(top(L('الرئيسية','Dashboard'),L('٣ فروع','3 branches'),L('خ','K'))+body('')+nav('collector',0)+
+        acct(L('خالد','Khaled'),L('محصّل','Collector'))); }}
+  ];
+
+  TOURS.treasury=[
+    {d:6500, ar:{h:'الدخول',p:'اختر اسمك وأدخل رقمك السري. ترى كل الفروع، لأن الخزينة هي نهاية دورة النقد.'},
+      en:{h:'Signing in',p:'Choose your name and enter your PIN. You see every branch, because treasury is where the cash cycle ends.'},
+      s:function(){ return login(L('سلمان — الخزينة','Salman — Treasury')); }},
+    {d:9000, ar:{h:'لوحة الخزينة',p:'تعرض الوارد من المحصّلين، والعهدة المتبقية لديك، والفواتير غير المدفوعة. وشريط الفترة أعلاها يتحكم بكل الأرقام.'},
+      en:{h:'The treasury board',p:'It shows what came in from the collectors, the petty cash you still hold, and unpaid bills. The period bar above drives all of it.'},
+      s:function(){ return scr(top(L('الرئيسية','Dashboard'),L('كل الفروع · اليوم','All branches · today'),L('س','S'))+chips(PER,0)+
+        tot([[L('الوارد اليوم','Received today'),'18,140','up'],[L('العهدة','Petty cash'),'6,350','gold'],[L('فواتير مستحقة','Bills due'),'4,200','down']])+
+        body(row('clock',L('خريص','Khurais'),L('بانتظار تأكيدك','Waiting for your confirmation'),'4,180','','gold')+
+          row('clock',L('اليرموك','Yarmouk'),L('بانتظار تأكيدك','Waiting for your confirmation'),'3,760','','gold')+
+          row('check',L('قرطبة','Qurtubah'),L('مؤكَّد 12:40','Confirmed 12:40'),'3,300','up','mint'))+
+        nav('treasury',0)); }},
+    {d:10000, ar:{h:'الاستلام النهائي — الخطوة ٣ من ٣',p:'افتح التسليم، تأكد أن النقد الذي أحضره المحصّل مطابق، ثم أكّد الاستلام النهائي. عند تأكيدك تكتمل الدورة ويصبح المبلغ في الخزينة رسمياً، ولا يستطيع أحد تعديله.'},
+      en:{h:'Final receipt — step 3 of 3',p:'Open the handover, check that the cash the collector brought matches, then confirm final receipt. Your confirmation closes the cycle: the amount is officially in treasury and nobody can alter it.'},
+      s:function(){ return scr(top(L('التسليم النقدي','Cash handover'),L('خريص','Khurais'),L('س','S'))+body('')+nav('treasury',1)+
+        sheet(L('تأكيد الاستلام النهائي','Confirm final receipt'),
+          '<div class="pv-card gold"><span style="font-size:9px;color:var(--ink-dim)">'+L('من المحصّل خالد','From collector Khaled')+'</span><b style="display:block;font-size:19px;margin-top:3px;color:var(--brand-lift)">4,180 <span style="font-size:10px">'+t('sar')+'</span></b></div>'+
+          flow(2)+
+          '<div class="pv-card"><span style="font-size:9px;color:var(--ink-faint)">'+L('بعد التأكيد تُقفل الحركة نهائياً ولا تُعدَّل إلا بطلب تعديل موثّق.','After confirming, the entry locks for good and only changes through a logged edit request.')+'</span></div>'+
+          '<div class="pv-btn mint pv-hi">'+L('تأكيد الاستلام','Confirm receipt')+'</div>')); }},
+    {d:10000, ar:{h:'طلبات التعديل — قرارك أنت',p:'أي مستخدم يريد تعديل حركة مؤكَّدة يرسل لك طلباً بالسبب. تفتح الطلب وتوافق أو ترفض. لا يتغيّر أي رقم في النظام قبل موافقتك، ويُسجَّل قرارك مع الوقت.'},
+      en:{h:'Edit requests — your call',p:'Anyone who wants to change a confirmed entry sends you a request with the reason. You open it and approve or reject. Nothing in the system changes before you approve, and your decision is logged with its time.'},
+      s:function(){ return scr(top(L('طلبات التعديل','Edit requests'),L('٢ طلبات معلّقة','2 pending'),L('س','S'))+chips(PER,4)+
+        body('<div class="pv-card gold pv-in"><div style="display:flex;justify-content:space-between"><b style="font-size:10.5px">'+L('أحمد — خريص','Ahmad — Khurais')+'</b><span style="font-size:9px;color:var(--ink-faint)">'+L('اليوم','today')+'</span></div>'+
+          '<span style="font-size:9px;color:var(--ink-dim);display:block;margin:4px 0 7px">'+L('«أدخلت النقدي 3,200 والصحيح 3,020»','“I entered cash 3,200, the correct figure is 3,020”')+'</span>'+
+          '<div style="display:flex;gap:5px"><div class="pv-btn mint" style="flex:1;padding:7px">'+L('موافقة','Approve')+'</div><div class="pv-btn ghost" style="flex:1;padding:7px">'+L('رفض','Reject')+'</div></div></div>'+
+          row('expenses',L('سلمى — اليرموك','Salma — Yarmouk'),L('تعديل مصروف 180','Edit expense 180'),'','',''))+
+        nav('treasury',2)); }},
+    {d:8500, ar:{h:'مصروفات الخزينة (العهدة)',p:'تسجّل مصروفاتك أنت من نفس التطبيق، وتُخصم مباشرة من عهدتك — فيبقى رصيد العهدة في التقرير صحيحاً دائماً بدون كشف جانبي.'},
+      en:{h:'Treasury expenses (petty cash)',p:'You record your own expenses in the same app and they are deducted straight from your petty cash — so the custody balance in the report is always right, with no side spreadsheet.'},
+      s:function(){ return scr(top(L('المصروفات','Expenses'),L('الخزينة · العهدة','Treasury · petty cash'),L('س','S'))+chips(PER,3)+
+        tot([[L('العهدة','Petty cash'),'6,350','gold'],[L('مصروفات الشهر','Month expenses'),'3,120','down'],[L('عدد البنود','Lines'),'14','']])+
+        body(row('expenses',L('وقود','Fuel'),L('اليوم','Today'),'-240','down')+
+          row('expenses',L('قرطاسية','Stationery'),L('أمس','Yesterday'),'-180','down')+
+          '<div class="pv-btn pv-hi">'+L('تسجيل مصروف','Record an expense')+'</div>')+
+        nav('treasury',3)); }},
+    {d:10500, ar:{h:'الفواتير الشهرية — قبل القطع',p:'الكهرباء والإنترنت والمياه والإيجار كلها هنا بتاريخ استحقاقها. التطبيق ينبّهك قبل الاستحقاق بخمسة أيام، ويصلك بريد تذكير يومياً حتى السداد. وبمجرد تسجيل السداد تُنشأ فاتورة الشهر التالي تلقائياً.'},
+      en:{h:'Monthly bills — before the cut-off',p:'Electricity, internet, water and rent all live here with their due dates. The app warns you five days ahead and emails a daily reminder until it is paid. The moment you record the payment, next month’s bill is created automatically.'},
+      s:function(){ return scr(top(L('الفواتير','Bills'),L('كل الفروع','All branches'),L('س','S'))+chips(PER,3)+
+        body('<div class="pv-card bad pv-hi"><b style="font-size:10.5px;color:var(--rose)">'+L('⚠ فاتورة كهرباء — متأخرة يومين','⚠ Electricity — 2 days overdue')+'</b><span style="display:block;font-size:9px;color:var(--ink-dim);margin-top:3px">'+L('خريص · 1,850 ر.س','Khurais · SAR 1,850')+'</span></div>'+
+          row('alert',L('إنترنت — اليرموك','Internet — Yarmouk'),L('تستحق خلال ٣ أيام','Due in 3 days'),'640','','gold')+
+          row('alert',L('مياه — قرطبة','Water — Qurtubah'),L('تستحق خلال ٥ أيام','Due in 5 days'),'310','','gold')+
+          '<div class="pv-card good"><span style="font-size:9px">'+L('سجّلت السداد؟ تُنشأ فاتورة الشهر القادم تلقائياً بنفس البيانات.','Recorded the payment? Next month’s bill is created automatically with the same details.')+'</span></div>')+
+        nav('treasury',4)); }},
+    {d:7500, ar:{h:'الخروج',p:'اضغط دائرة اسمك أعلى الشاشة ثم «تسجيل الخروج». وإذا كان لك أكثر من دور — مثل الخزينة والمحاسبة — بدّل بينها من نفس القائمة.'},
+      en:{h:'Signing out',p:'Tap the circle with your initial at the top, then “Sign out”. If you hold more than one role — treasury and accounting, say — switch between them from the same menu.'},
+      s:function(){ return scr(top(L('الرئيسية','Dashboard'),L('كل الفروع','All branches'),L('س','S'))+body('')+nav('treasury',0)+
+        acct(L('سلمان','Salman'),L('الخزينة','Treasury'),
+          '<div class="pv-sec">'+L('تبديل الدور','Switch role')+'</div><div class="pv-chips" style="padding:0 0 4px"><span class="pv-chip on">'+L('الخزينة','Treasury')+'</span><span class="pv-chip">'+L('مدير عام','Admin')+'</span></div>')); }}
+  ];
+
+  TOURS.area=[
+    {d:6500, ar:{h:'الدخول',p:'اختر اسمك وأدخل رقمك السري. يفتح لك التطبيق على فروع منطقتك أنت فقط.'},
+      en:{h:'Signing in',p:'Choose your name and enter your PIN. The app opens on the branches in your area only.'},
+      s:function(){ return login(L('ناصر — مدير منطقة','Nasser — Area Manager')); }},
+    {d:9000, ar:{h:'منطقتك في شاشة واحدة',p:'إجماليات منطقتك أعلى الشاشة: الإيراد، المصروفات، والنقد لدى الفروع. كل رقم هنا هو مجموع فروعك في الفترة المختارة.'},
+      en:{h:'Your whole area on one screen',p:'Your area totals sit at the top: revenue, expenses and cash still at the branches. Every figure is the sum of your branches for the selected period.'},
+      s:function(){ return scr(top(L('الرئيسية','Dashboard'),L('٤ فروع · اليوم','4 branches · today'),L('ن','N'))+chips(PER,0)+
+        tot([[L('الإيراد','Revenue'),'38,400','up'],[L('المصروفات','Expenses'),'2,180','down'],[L('نقد بالفروع','Cash at branches'),'11,240','gold']])+
+        body(row('building',L('خريص','Khurais'),L('٩,٦٠٠ إيراد','9,600 revenue'),'4,180','','gold')+
+          row('building',L('اليرموك','Yarmouk'),L('١١,٢٠٠ إيراد','11,200 revenue'),'3,760','','gold')+
+          row('building',L('قرطبة','Qurtubah'),L('٨,٩٠٠ إيراد','8,900 revenue'),'3,300','','gold'))+
+        nav('area',0)); }},
+    {d:9000, ar:{h:'قارن الفروع فوراً',p:'جدول أداء الفروع يرتّبها أمامك: الإيراد، المصروف، والنقد غير المسلَّم. الفرع الذي تأخّر في التسليم أو ارتفعت مصروفاته يظهر من أول نظرة.'},
+      en:{h:'Compare branches at a glance',p:'The branch performance table lines them up: revenue, expenses, and cash not yet handed over. A branch that is late handing over, or whose expenses jumped, stands out immediately.'},
+      s:function(){ return scr(top(L('الرئيسية','Dashboard'),L('أداء الفروع','Branch performance'),L('ن','N'))+chips(PER,2)+
+        body('<div class="pv-sec">'+L('أداء الفروع · ٧ أيام','Branch performance · 7 days')+'</div>'+
+          row('building',L('اليرموك','Yarmouk'),L('الأعلى إيراداً','Highest revenue'),'78,400','up','mint')+
+          row('building',L('خريص','Khurais'),L('منتظم','Steady'),'67,200','up')+
+          row('building',L('قرطبة','Qurtubah'),L('نقد لم يُسلَّم منذ يومين','Cash not handed over for 2 days'),'9,900','down','gold')+
+          row('building',L('ونس كافيه','WINS Cafe'),L('مصروفات مرتفعة','Expenses high'),'41,300','','gold'))+
+        nav('area',0)); }},
+    {d:8500, ar:{h:'الفلاتر الزمنية وتاريخ محدد',p:'بدّل بين اليوم وأمس و٧ أيام والشهر والكل، أو اضغط «تاريخ محدد» واختر يوماً أو فترة من التقويم. كل الشاشات والإجماليات تتبع اختيارك.'},
+      en:{h:'Period filters and a chosen date',p:'Switch between today, yesterday, 7 days, month and all, or tap “Custom date” and pick a day or a range from the calendar. Every screen and total follows your choice.'},
+      s:function(){ return scr(top(L('الرئيسية','Dashboard'),L('فترة مخصصة','Custom period'),L('ن','N'))+chips(PER.concat([L('تاريخ محدد','Custom')]),5)+body('')+nav('area',0)+
+        sheet(L('اختر الفترة','Choose a period'),
+          '<div class="pv-card"><div style="display:flex;justify-content:space-between;font-size:9.5px;margin-bottom:6px"><span>'+L('أكتوبر ٢٠٢٦','October 2026')+'</span></div>'+
+          '<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px;font-size:8.5px;text-align:center;color:var(--ink-dim)">'+
+          [1,2,3,4,5,6,7,8,9,10,11,12,13,14].map(function(d){
+            var on=(d>=3&&d<=9);
+            return '<span style="padding:4px 0;border-radius:6px;'+(on?'background:rgba(201,160,77,.25);color:var(--brand-lift);font-weight:700':'')+'">'+d+'</span>';
+          }).join('')+'</div></div>'+
+          '<div class="pv-btn pv-hi">'+L('تطبيق','Apply')+'</div>')); }},
+    {d:8000, ar:{h:'فواتير فروعك',p:'ترى فواتير فروعك ومواعيد استحقاقها وتنبيهات ما قبل القطع بخمسة أيام، فتتابع المدير المسؤول قبل أن تنقطع الخدمة.'},
+      en:{h:'Your branches’ bills',p:'You see your branches’ bills, their due dates and the five-day cut-off warnings, so you can chase the responsible manager before any service is cut.'},
+      s:function(){ return scr(top(L('الفواتير','Bills'),L('فروع منطقتي','My area'),L('ن','N'))+chips(PER,3)+
+        body('<div class="pv-card bad"><b style="font-size:10.5px;color:var(--rose)">'+L('⚠ كهرباء خريص — متأخرة','⚠ Khurais electricity — overdue')+'</b></div>'+
+          row('alert',L('إنترنت — اليرموك','Internet — Yarmouk'),L('خلال ٣ أيام','in 3 days'),'640','','gold')+
+          row('check',L('إيجار — قرطبة','Rent — Qurtubah'),L('مدفوعة','Paid'),'12,000','up','mint'))+
+        nav('area',1)); }},
+    {d:7000, ar:{h:'الخروج',p:'من دائرة اسمك أعلى الشاشة اختر «تسجيل الخروج». بياناتك محفوظة في جوجل شيت وتفتح من أي جهاز بنفس اسمك ورقمك السري.'},
+      en:{h:'Signing out',p:'From the circle with your initial at the top choose “Sign out”. Your data lives in Google Sheets and opens on any device with the same name and PIN.'},
+      s:function(){ return scr(top(L('الرئيسية','Dashboard'),L('٤ فروع','4 branches'),L('ن','N'))+body('')+nav('area',0)+
+        acct(L('ناصر','Nasser'),L('مدير منطقة','Area Manager'))); }}
+  ];
+
+  TOURS.admin=[
+    {d:6500, ar:{h:'الدخول',p:'المدير العام يدخل بنفس الطريقة: الاسم ثم الرقم السري. الفرق أن كل الفروع وكل الأدوات تفتح له.'},
+      en:{h:'Signing in',p:'The admin signs in the same way: name, then PIN. The difference is that every branch and every tool is open to them.'},
+      s:function(){ return login(L('صبحي — مدير عام','Sobhy — Admin')); }},
+    {d:9000, ar:{h:'الصورة الكاملة',p:'لوحتك تجمع كل الفروع: الإيراد، المصروفات، النقد غير المسلَّم، والفواتير المستحقة — في الفترة التي تختارها من شريط الفترة.'},
+      en:{h:'The whole picture',p:'Your board pulls every branch together: revenue, expenses, cash not yet handed over and bills due — for whichever period you pick in the period bar.'},
+      s:function(){ return scr(top(L('الرئيسية','Dashboard'),L('كل الفروع · الشهر','All branches · month'),L('ص','S'))+chips(PER,3)+
+        tot([[L('الإيراد','Revenue'),'842,600','up'],[L('المصروفات','Expenses'),'61,400','down'],[L('نقد بالفروع','Cash at branches'),'23,900','gold']])+
+        body(row('building',L('١٢ فرعاً','12 branches'),L('نشطة','Active'),'','','gold')+
+          row('handover',L('تسليمات اليوم','Handovers today'),L('٨ مكتملة · ٣ معلّقة','8 complete · 3 pending'),'','','')+
+          row('alert',L('فواتير مستحقة','Bills due'),L('٤ فواتير خلال ٥ أيام','4 within 5 days'),'4,200','down'))+
+        nav('admin',0)); }},
+    {d:9500, ar:{h:'الإدارة — المدن والفروع والموظفون',p:'من تبويب الإدارة تضيف مدينة، ثم فرعاً داخلها، ثم تربط كل فرع بمدير منطقة ومحصّل. وتضيف الموظفين وتحدّد أدوارهم — ومن هنا يصبح لكل شخص حسابه ورقمه السري.'},
+      en:{h:'Admin — cities, branches and staff',p:'In the Admin tab you add a city, then a branch inside it, then link each branch to an area manager and a collector. You add staff and set their roles — that is how each person gets their own account and PIN.'},
+      s:function(){ return scr(top(L('الإدارة','Admin'),L('إعداد المنظومة','System setup'),L('ص','S'))+
+        '<div class="pv-chips"><span class="pv-chip on">'+L('نظرة عامة','Overview')+'</span><span class="pv-chip">'+L('المدن','Cities')+'</span><span class="pv-chip">'+L('الفروع','Branches')+'</span><span class="pv-chip">'+L('الموظفون','Staff')+'</span></div>'+
+        body(row('city',L('المدن','Cities'),L('الرياض · جدة','Riyadh · Jeddah'),'2','','gold')+
+          row('building',L('الفروع','Branches'),L('١٢ فرعاً','12 branches'),'12','','gold')+
+          row('user',L('الموظفون','Staff'),L('١٣ مستخدماً بأدوارهم','13 users with roles'),'13','','gold')+
+          '<div class="pv-card"><span style="font-size:9px;color:var(--ink-faint)">'+L('شريط التبويبات يُسحب جانبياً في الجوال للوصول لباقي الأقسام.','The tab strip scrolls sideways on a phone to reach the rest of the sections.')+'</span></div>')+
+        nav('admin',3)); }},
+    {d:9500, ar:{h:'تطبيقات التوصيل',p:'من قسم «التطبيقات» تضيف أي تطبيق توصيل وتعدّله أو توقفه، وتحدّد الفروع التي يعمل بها. بعدها تظهر التطبيقات لمدير الفرع في شاشة المبيعات ليسجّل مبيعات كل تطبيق على حدة — وأكثر من تطبيق في نفس الحركة.'},
+      en:{h:'Delivery apps',p:'In the “Apps” section you add any delivery app, edit or deactivate it, and choose which branches it runs in. The branch manager then sees those apps on the sales screen and records each app’s sales separately — several in the same entry.'},
+      s:function(){ return scr(top(L('الإدارة','Admin'),L('تطبيقات التوصيل','Delivery apps'),L('ص','S'))+
+        '<div class="pv-chips"><span class="pv-chip">'+L('الفروع','Branches')+'</span><span class="pv-chip">'+L('الموظفون','Staff')+'</span><span class="pv-chip on">'+L('التطبيقات','Apps')+'</span><span class="pv-chip">'+L('الربط','Link')+'</span></div>'+
+        body(row('truck','HungerStation',L('٨ فروع','8 branches'),'','','gold')+
+          row('truck','Jahez',L('١٢ فرعاً','12 branches'),'','','gold')+
+          row('truck','Keeta',L('٤ فروع','4 branches'),'','','gold')+
+          '<div class="pv-btn pv-hi">'+L('إضافة تطبيق','Add an app')+'</div>')+
+        nav('admin',3)); }},
+    {d:8500, ar:{h:'طلبات التعديل والرقابة',p:'كل طلب تعديل على حركة مؤكَّدة يمرّ من هنا بسببه واسم صاحبه ووقته. الموافقة أو الرفض تُسجَّل، فيبقى أثر كامل لمن غيّر ماذا ومتى.'},
+      en:{h:'Edit requests and oversight',p:'Every request to change a confirmed entry passes through here with its reason, its author and its time. Approval or rejection is logged, leaving a complete trail of who changed what and when.'},
+      s:function(){ return scr(top(L('طلبات التعديل','Edit requests'),L('٢ معلّقة','2 pending'),L('ص','S'))+chips(PER,4)+
+        body('<div class="pv-card gold pv-in"><b style="font-size:10.5px">'+L('أحمد — خريص','Ahmad — Khurais')+'</b>'+
+          '<span style="font-size:9px;color:var(--ink-dim);display:block;margin:4px 0 7px">'+L('«تصحيح مبلغ النقدي»','“Correct the cash figure”')+'</span>'+
+          '<div style="display:flex;gap:5px"><div class="pv-btn mint" style="flex:1;padding:7px">'+L('موافقة','Approve')+'</div><div class="pv-btn ghost" style="flex:1;padding:7px">'+L('رفض','Reject')+'</div></div></div>'+
+          row('check',L('قرار سابق','Earlier decision'),L('مرفوض · أمس','Rejected · yesterday'),'','',''))+
+        nav('admin',2)); }},
+    {d:9000, ar:{h:'الربط بجوجل شيت',p:'التطبيق مربوط بجدول جوجل الخاص بك، وكل حركة تُحفظ هناك لحظياً على كل الأجهزة. مؤشر «مباشر» أعلى الشاشة يؤكد الاتصال، وإذا انقطعت الشبكة تُحفظ الحركات محلياً وتُرفع تلقائياً عند عودة الاتصال.'},
+      en:{h:'The Google Sheet link',p:'The app is wired to your own Google Sheet, and every entry is written there live on all devices. The “Live” badge at the top confirms the link; if the network drops, entries are kept locally and pushed automatically once it returns.'},
+      s:function(){ return scr(top(L('الإدارة','Admin'),L('الربط · مباشر','Link · live'),L('ص','S'))+
+        '<div class="pv-chips"><span class="pv-chip">'+L('التطبيقات','Apps')+'</span><span class="pv-chip on">'+L('الربط','Link')+'</span></div>'+
+        body('<div class="pv-card good"><b style="font-size:10.5px;color:var(--mint)">'+L('متصل — مباشر','Connected — live')+'</b>'+
+          '<span style="display:block;font-size:9px;color:var(--ink-dim);margin-top:3px">'+L('كل جهاز يقرأ ويكتب على نفس الجدول','Every device reads and writes the same sheet')+'</span></div>'+
+          row('check',L('المبيعات','Sales'),L('متزامنة','Synced'),'','','mint')+
+          row('check',L('المصروفات','Expenses'),L('متزامنة','Synced'),'','','mint')+
+          row('check',L('التسليمات والفواتير','Handovers & bills'),L('متزامنة','Synced'),'','','mint'))+
+        nav('admin',3)); }},
+    {d:7500, ar:{h:'الخروج',p:'من دائرة اسمك أعلى الشاشة اختر «تسجيل الخروج»، أو بدّل دورك إن كان لك أكثر من دور. ومن نفس القائمة تقدر تطلب تحديث التطبيق لآخر نسخة.'},
+      en:{h:'Signing out',p:'From the circle with your initial at the top choose “Sign out”, or switch role if you hold more than one. The same menu also pulls the latest version of the app.'},
+      s:function(){ return scr(top(L('الرئيسية','Dashboard'),L('كل الفروع','All branches'),L('ص','S'))+body('')+nav('admin',0)+
+        acct(L('صبحي','Sobhy'),L('مدير عام','Admin'))); }}
+  ];
+
+  var ORDER=['manager','collector','treasury','area','admin'];
+
+  /* ------------------------------ the player ------------------------------ */
+  function steps(){ return TOURS[role]||TOURS.manager; }
+  function cancel(){ if(timer) clearTimeout(timer); timer=null; }
+  function run(ms){
+    cancel();
+    endAt=Date.now()+ms;
+    if(bar){
+      bar.style.transition='none';
+      void bar.offsetWidth;          /* commit the width it is at right now */
+      bar.style.transition='width '+ms+'ms linear';
+      bar.style.width='100%';
+    }
+    timer=setTimeout(function(){ go(idx+1,true); }, ms);
+  }
+  function arm(ms){
+    cancel(); dur=ms; remain=ms;
+    var segs=el?el.querySelectorAll('.tour-seg i'):[];
+    bar=segs[idx]?segs[idx].querySelector('b'):null;
+    if(bar){ bar.style.transition='none'; bar.style.width='0%'; }
+    if(playing) run(ms);
+  }
+  function pause(){
+    if(!playing) return;
+    playing=false;
+    remain=Math.max(0,endAt-Date.now());
+    if(bar){ var w=bar.getBoundingClientRect().width; bar.style.transition='none'; bar.style.width=w+'px'; }
+    cancel(); paint();
+  }
+  function play(){ if(playing) return; playing=true; run(remain||dur); paint(); }
+  function go(n,auto){
+    var st=steps();
+    if(n>=st.length){
+      if(auto){ finished=true; playing=false; cancel(); paint(); return; }
+      n=st.length-1;
+    }
+    if(n<0) n=0;
+    idx=n; finished=false; render();
+  }
+  function restart(){ idx=0; finished=false; playing=true; render(); }
+
+  function fit(){
+    if(!el) return;
+    var ph=el.querySelector('.phone'); if(!ph) return;
+    var pv=ph.querySelector('.pv'); if(!pv) return;
+    pv.style.transform='scale('+(ph.getBoundingClientRect().width/300)+')';
+  }
+  function watch(){
+    if(ro){ try{ ro.disconnect(); }catch(e){} ro=null; }
+    if(!el || typeof ResizeObserver==='undefined') return;
+    var ph=el.querySelector('.phone'); if(!ph) return;
+    try{ ro=new ResizeObserver(fit); ro.observe(ph); }catch(e){}
+  }
+  function paint(){
+    if(!el) return;
+    var b=el.querySelector('[data-t="toggle"]');
+    if(b) b.innerHTML=finished?icon('clock'):(playing?'<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1.3"/><rect x="14" y="5" width="4" height="14" rx="1.3"/></svg>'
+      :'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.2v13.6a1 1 0 0 0 1.5.87l11-6.8a1 1 0 0 0 0-1.74l-11-6.8A1 1 0 0 0 8 5.2z"/></svg>');
+  }
+  function render(){
+    if(!el) return;
+    var st=steps(), s=st[idx]||st[0], tx=STATE.lang==='ar'?s.ar:s.en;
+    el.querySelector('.tour-cap').innerHTML='<div class="n">'+(idx+1)+' / '+st.length+'</div><h4>'+tx.h+'</h4><p>'+tx.p+'</p>';
+    el.querySelector('.tour-seg').innerHTML=st.map(function(_,i){
+      return '<i class="'+(i<idx||finished?'done':'')+'" data-t="seg" data-i="'+i+'"><b></b></i>';
+    }).join('');
+    el.querySelector('.tour-stage').innerHTML='<div class="phone">'+s.s()+'</div>';
+    fit(); watch();
+    el.querySelectorAll('.trole').forEach(function(c){ c.classList.toggle('on', c.getAttribute('data-r')===role); });
+    var sub=el.querySelector('.tour-head .hint');
+    if(sub) sub.textContent=t('role'+cap(role))+' · '+st.length+' '+L('خطوة','steps');
+    paint();
+    setTimeout(fit,60); setTimeout(fit,320);
+    arm(s.d);
+  }
+  function close(){
+    cancel();
+    if(!el) return;
+    var x=el; el=null; x.classList.remove('in');
+    setTimeout(function(){ x.remove(); },320);
+    window.removeEventListener('resize',fit);
+    if(ro){ try{ ro.disconnect(); }catch(e){} ro=null; }
+  }
+  function open(r){
+    if(el) close();
+    role=(r&&TOURS[r])?r:((STATE.session&&TOURS[STATE.session.role])?STATE.session.role:'manager');
+    idx=0; playing=true; finished=false;
+    el=document.createElement('div');
+    el.className='tour';
+    el.innerHTML=
+      '<div class="tour-head">'+logoMark('logo-glow')+'<div style="flex:1;min-width:0"><h3>'+t('tourTitle')+'</h3><span class="hint"></span></div>'+
+        '<button class="tour-x" data-t="close" aria-label="'+t('close')+'">'+icon('x')+'</button></div>'+
+      '<div class="tour-roles">'+ORDER.map(function(r2){
+        return '<button class="trole" data-t="role" data-r="'+r2+'">'+t('role'+cap(r2))+'</button>';
+      }).join('')+'</div>'+
+      '<div class="tour-body">'+
+        '<div class="tour-stage"></div>'+
+        '<div class="tour-side">'+
+          '<div class="tour-cap"></div>'+
+          '<div class="tour-ctl">'+
+            '<button class="tbtn" data-t="prev" aria-label="prev">'+icon('chevronEnd')+'</button>'+
+            '<button class="tbtn main" data-t="toggle" aria-label="play"></button>'+
+            '<button class="tbtn" data-t="next" aria-label="next">'+icon('chevronEnd')+'</button>'+
+            '<div class="tour-seg"></div>'+
+          '</div>'+
+        '</div>'+
+      '</div>';
+    document.body.appendChild(el);
+    void el.offsetWidth; el.classList.add('in');
+    el.addEventListener('click',function(ev){
+      var b=ev.target.closest('[data-t]'); if(!b) return;
+      var a=b.getAttribute('data-t');
+      if(a==='close') close();
+      else if(a==='prev') go(idx-1);
+      else if(a==='next') go(idx+1);
+      else if(a==='seg') go(+b.getAttribute('data-i'));
+      else if(a==='role'){ role=b.getAttribute('data-r'); idx=0; finished=false; playing=true; render(); }
+      else if(a==='toggle'){ if(finished) restart(); else if(playing) pause(); else play(); }
+    });
+    window.addEventListener('resize',fit);
+    try{ localStorage.setItem('wins_tour_seen','1'); }catch(e){}
+    render();
+  }
+  return { open:open, close:close, roles:ORDER };
+})();
+
+/* A one-time nudge on the dashboard, until the walkthrough has been opened. */
+function tourOfferCard(){
+  var seen=false;
+  try{ seen=localStorage.getItem('wins_tour_seen')==='1'; }catch(e){}
+  if(seen) return '';
+  return '<div class="link-warn fade-in" id="tour-offer">'+
+    '<div class="lw-ic">'+icon('camera','ic-s')+'</div>'+
+    '<div class="lw-body"><b>'+t('tourOffer')+'</b><span>'+t('tourOfferSub')+'</span></div>'+
+    '<button class="btn btn-primary btn-sm" data-action="open-tour">'+t('tourWatch')+'</button>'+
+  '</div>';
 }
 
 /* ===================== EVENT DELEGATION ===================== */
@@ -3718,6 +4346,7 @@ document.addEventListener('click', function(e){
       closeSheet(); renderShell(); toast(t('loggedOut'));
     });
   }
+  else if(action==='open-tour'){ closeSheet(); TOUR.open(el.getAttribute('data-role')||null); }
   else if(action==='open-sale'){ openSaleSheet(); }
   else if(action==='open-expense'){ openExpenseSheet(); }
   else if(action==='set-range'){
